@@ -1,4 +1,3 @@
-// main.go
 package main
 
 import (
@@ -8,6 +7,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/milly013/trello-project/back/user-service/model"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -25,10 +26,17 @@ func main() {
 	// Referenca na kolekciju
 	projectCollection = client.Database("mydatabase").Collection("users")
 
+	// Kreirajte repozitorijum
+	userRepo := model.NewUserRepository(client, "mydatabase")
+
+	// Kreirajte UserHandler
+	userHandler := model.NewUserHandler(userRepo)
+
 	router := gin.Default()
 
-	// API ruta za korisnike
-	router.GET("/users", getUsers)
+	// API rute za korisnike
+	router.POST("/users", userHandler.CreateUser)
+	router.GET("/users", userHandler.GetUsers)
 
 	router.Run(":8081")
 }
@@ -61,10 +69,4 @@ func connectToMongoDB() (*mongo.Client, error) {
 
 	fmt.Println("Connected to MongoDB!")
 	return client, nil
-}
-
-// Handler za GET /users
-func getUsers(c *gin.Context) {
-	// Dummy podaci za testiranje, kasnije ćemo ih zameniti podacima iz baze
-	c.JSON(200, gin.H{"message": "Retrieve users from MongoDB here"})
 }

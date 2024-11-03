@@ -1,4 +1,5 @@
-module modul/user-service
+module github.com/milly013/trello-project/back/user-service
+
 
 go 1.22.2
 
