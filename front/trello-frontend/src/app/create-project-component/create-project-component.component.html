@@ -1,0 +1,32 @@
+<div class="container mt-5" style="margin-top: 110px !important">
+  <div class="card shadow-lg">
+      <div class="card-header text-white bg-primary">
+          <h2 class="mb-0">Add Project</h2>
+      </div>
+      <div class="card-body">
+          <form (ngSubmit)="addProject()" [formGroup]="projectForm">
+              <div class="form-group">
+                  <label for="name">Project Name</label>
+                  <input type="text" class="form-control" id="name" formControlName="name" required>
+              </div>
+              <div class="form-group">
+                  <label for="expected_end_date">Expected End Date</label>
+                  <input type="date" class="form-control" id="expected_end_date" formControlName="expected_end_date" required>
+              </div>
+              <div class="form-group">
+                  <label for="min_members">Minimum Members</label>
+                  <input type="number" class="form-control" id="min_members" formControlName="min_members" required min="1">
+              </div>
+              <div class="form-group">
+                  <label for="max_members">Maximum Members</label>
+                  <input type="number" class="form-control" id="max_members" formControlName="max_members" required min="1">
+              </div>
+              <div class="form-group">
+                  <label for="manager_id">Manager ID</label>
+                  <input type="text" class="form-control" id="manager_id" formControlName="manager_id" required>
+              </div>
+              <button type="submit" class="btn btn-primary" style="margin-top: 10px !important;">Add Project</button>
+          </form>
+      </div>
+  </div>
+</div>

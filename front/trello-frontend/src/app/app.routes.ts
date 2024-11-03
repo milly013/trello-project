@@ -1,3 +1,7 @@
 import { Routes } from '@angular/router';
+import { CreateProjectComponent } from './create-project-component/create-project-component.component';
 
-export const routes: Routes = [];
+export const appRoutes: Routes = [
+  { path: '', component: CreateProjectComponent },
+  
+];
