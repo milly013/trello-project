@@ -22,14 +22,14 @@ func main() {
 	defer client.Disconnect(context.TODO())
 
 	// Referenca na kolekciju
-	projectCollection = client.Database("mydatabase").Collection("projects")
+	projectCollection = client.Database("mydatabase").Collection("tasks")
 
 	router := gin.Default()
 
-	// API rute za projekte
-	router.GET("/projects", getProjects)
+	// API ruta za korisnike
+	router.GET("/tasks", getUsers)
 
-	router.Run(":8080")
+	router.Run(":8082")
 }
 
 // Funkcija za povezivanje na MongoDB
@@ -37,12 +37,17 @@ func connectToMongoDB() (*mongo.Client, error) {
 	// Opcije konekcije
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 
+	// Kreiramo novi MongoDB klijent
+	client, err := mongo.NewClient(clientOptions)
+	if err != nil {
+		return nil, err
+	}
+
 	// Povezujemo se na MongoDB server
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Koristimo Connect umesto NewClient
-	client, err := mongo.Connect(ctx, clientOptions)
+	err = client.Connect(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +62,8 @@ func connectToMongoDB() (*mongo.Client, error) {
 	return client, nil
 }
 
-// Handler za GET /projects
-func getProjects(c *gin.Context) {
+// Handler za GET /users
+func getUsers(c *gin.Context) {
 	// Dummy podaci za testiranje, kasnije ćemo ih zameniti podacima iz baze
-	c.JSON(200, gin.H{"message": "Retrieve projects from MongoDB here"})
+	c.JSON(200, gin.H{"message": "Retrieve users from MongoDB here"})
 }
