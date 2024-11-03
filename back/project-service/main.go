@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -6,12 +7,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/milly013/trello-project/back/project-service/handler"
+	"github.com/milly013/trello-project/back/project-service/repository"
+	"github.com/milly013/trello-project/back/project-service/service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-var projectCollection *mongo.Collection
 
 func main() {
 	// Povezivanje na MongoDB
@@ -20,34 +23,47 @@ func main() {
 		log.Fatal("Error connecting to MongoDB:", err)
 	}
 	defer client.Disconnect(context.TODO())
+	db := client.Database("mydatabase")
 
-	// Referenca na kolekciju
-	projectCollection = client.Database("mydatabase").Collection("projects")
+	// Inicijalizacija repozitorijuma, servisa i handlera
+	projectRepo := repository.NewProjectRepository(db)
+	projectService := service.NewProjectService(projectRepo)
+	projectHandler := handler.NewProjectHandler(projectService)
 
+	// Kreiranje Gin routera
 	router := gin.Default()
 
-	// API rute za projekte
-	router.GET("/projects", getProjects)
+	// CORS konfiguracija
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:4200"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
-	router.Run(":8080")
+	// Definisanje ruta
+	router.POST("/projects", projectHandler.CreateProject)
+	router.GET("/projects", projectHandler.GetProjects)
+
+	// Pokretanje servera
+	router.Run(":8081")
 }
 
-// Funkcija za povezivanje na MongoDB
 func connectToMongoDB() (*mongo.Client, error) {
-	// Opcije konekcije
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
-
-	// Povezujemo se na MongoDB server
+	client, err := mongo.NewClient(clientOptions)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Koristimo Connect umesto NewClient
-	client, err := mongo.Connect(ctx, clientOptions)
+	err = client.Connect(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// Testiramo konekciju
 	err = client.Ping(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -55,10 +71,4 @@ func connectToMongoDB() (*mongo.Client, error) {
 
 	fmt.Println("Connected to MongoDB!")
 	return client, nil
-}
-
-// Handler za GET /projects
-func getProjects(c *gin.Context) {
-	// Dummy podaci za testiranje, kasnije ćemo ih zameniti podacima iz baze
-	c.JSON(200, gin.H{"message": "Retrieve projects from MongoDB here"})
 }

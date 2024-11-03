@@ -42,4 +42,4 @@ func (repo *ProjectRepository) GetProjects(ctx context.Context) ([]model.Project
 	return projects, nil
 }
 
-// Dodati ostale funkcije kao što su UpdateProject, DeleteProject, FindById...
+
