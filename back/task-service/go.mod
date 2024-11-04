@@ -1,4 +1,4 @@
-module modul/task-service
+module github.com/milly013/trello-project/back/task-service
 
 go 1.22.2
 
