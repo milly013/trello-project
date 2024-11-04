@@ -7,8 +7,8 @@ import { ProjectService, Project } from '../service/project.service';
   standalone: true,
   templateUrl: './create-project-component.component.html',
   styleUrls: ['./create-project-component.component.css'],
-  imports: [ReactiveFormsModule, ],
-  providers: [ProjectService]
+  imports: [ReactiveFormsModule], // Uverite se da je ovde sve što vam treba
+  providers: [ProjectService] // Obezbeđivanje servisa
 })
 export class CreateProjectComponent implements OnInit {
   projectForm: FormGroup;
@@ -30,7 +30,7 @@ export class CreateProjectComponent implements OnInit {
       this.projectService.createProject(this.projectForm.value).subscribe({
         next: (response) => {
           console.log('Project added successfully', response);
-          this.projectForm.reset(); // Resetuj formu nakon dodavanja
+          this.projectForm.reset();
         },
         error: (error) => {
           console.error('Error adding project', error);
@@ -41,5 +41,4 @@ export class CreateProjectComponent implements OnInit {
       });
     }
   }
-  
 }
