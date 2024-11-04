@@ -6,14 +6,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/milly013/trello-project/back/user-service/model"
+	"github.com/milly013/trello-project/back/user-service/repository"
+
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserHandler struct {
-	repo *UserRepository
+	repo *repository.UserRepository
 }
 
-func NewUserHandler(repo *UserRepository) *UserHandler {
+func NewUserHandler(repo *repository.UserRepository) *UserHandler {
 	return &UserHandler{repo: repo}
 }
 

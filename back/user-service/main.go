@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/milly013/trello-project/back/user-service/model"
+
+	"github.com/milly013/trello-project/back/user-service/handler"
+	"github.com/milly013/trello-project/back/user-service/repository"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -27,10 +29,10 @@ func main() {
 	projectCollection = client.Database("mydatabase").Collection("users")
 
 	// Kreirajte repozitorijum
-	userRepo := model.NewUserRepository(client, "mydatabase")
+	userRepo := repository.NewUserRepository(client, "mydatabase")
 
 	// Kreirajte UserHandler
-	userHandler := model.NewUserHandler(userRepo)
+	userHandler := handler.NewUserHandler(userRepo)
 
 	router := gin.Default()
 
@@ -39,7 +41,7 @@ func main() {
 	router.GET("/users", userHandler.GetUsers)
 	router.GET("/users/:id", userHandler.GetUserByID) // Dodana ruta za preuzimanje korisnika po ID-u
 
-	router.Run(":8081")
+	router.Run(":8080")
 }
 
 // Funkcija za povezivanje na MongoDB

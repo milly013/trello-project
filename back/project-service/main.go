@@ -45,6 +45,7 @@ func main() {
 	// Definisanje ruta
 	router.POST("/projects", projectHandler.CreateProject)
 	router.GET("/projects", projectHandler.GetProjects)
+	router.POST("/projects/:projectId/members", projectHandler.AddMemberToProject)
 
 	// Pokretanje servera
 	router.Run(":8081")

@@ -16,5 +16,5 @@ type Project struct {
 	ManagerID  primitive.ObjectID   `bson:"managerId" json:"managerId"`
 	IsActive   bool                 `bson:"isActive" json:"isActive"`
 	CreatedAt  time.Time            `bson:"createdAt" json:"createdAt"`
-	MemberIDs  []primitive.ObjectID `bson:"memberIds" json:"memberIds"` // Dodato za članove
+	MemberIDs  []primitive.ObjectID `bson:"memberIds" json:"memberIds"`
 }
