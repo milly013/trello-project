@@ -73,21 +73,3 @@ func (repo *ProjectRepository) UpdateProject(ctx context.Context, project *model
 	return err
 }
 
-func (repo *ProjectRepository) AddTaskToProject(ctx context.Context, projectId primitive.ObjectID, task *model.Task) error {
-	task.CreatedAt = time.Now() // Postavi vreme kreiranja
-	task.ProjectID = projectId  // Poveži task sa projektom
-
-	// Umetanje taska u kolekciju
-	_, err := repo.taskCollection.InsertOne(ctx, task)
-	if err != nil {
-		return err
-	}
-
-	// Ažuriraj projekat da doda ID taska
-	_, err = repo.collection.UpdateOne(
-		ctx,
-		bson.M{"_id": projectId},
-		bson.M{"$push": bson.M{"taskIds": task.ID}}, // Dodaj task ID u listu taskova
-	)
-	return err
-}
