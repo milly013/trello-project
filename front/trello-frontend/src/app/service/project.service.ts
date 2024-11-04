@@ -16,7 +16,7 @@ export interface Project {
 export class ProjectService {
   private apiUrl = 'http://localhost:8081'; // URL vašeg API-a
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   createProject(project: Project): Observable<Project> {
     const headers = new HttpHeaders({
