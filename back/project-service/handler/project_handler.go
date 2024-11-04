@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/milly013/trello-project/back/project-service/model"
 	"github.com/milly013/trello-project/back/project-service/service"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ProjectHandler struct {
@@ -39,4 +40,24 @@ func (h *ProjectHandler) GetProjects(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, projects)
+}
+
+func (h *ProjectHandler) AddMemberToProject(c *gin.Context) {
+	projectId := c.Param("projectId")
+	var request struct {
+		MemberID primitive.ObjectID `json:"memberId"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.service.AddMemberToProject(context.Background(), projectId, request.MemberID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/milly013/trello-project/back/project-service/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ProjectRepository struct {
@@ -42,4 +43,31 @@ func (repo *ProjectRepository) GetProjects(ctx context.Context) ([]model.Project
 	return projects, nil
 }
 
+func (repo *ProjectRepository) GetProjectById(ctx context.Context, projectId string) (*model.Project, error) {
+	var project model.Project
+	objID, err := primitive.ObjectIDFromHex(projectId)
+	if err != nil {
+		return nil, err
+	}
 
+	err = repo.collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&project)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil // Projekat nije pronađen
+		}
+		return nil, err
+	}
+
+	return &project, nil
+}
+
+
+
+func (repo *ProjectRepository) UpdateProject(ctx context.Context, project *model.Project) error {
+	_, err := repo.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": project.ID},
+		bson.M{"$set": project},
+	)
+	return err
+}
