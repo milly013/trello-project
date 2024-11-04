@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/milly013/trello-project/back/task-service/model"
+
 	"github.com/milly013/trello-project/back/project-service/model"
 	"github.com/milly013/trello-project/back/project-service/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -28,14 +30,14 @@ func (s *ProjectService) GetProjects(ctx context.Context) ([]model.Project, erro
 	return s.repo.GetProjects(ctx)
 }
 
-// GetProjectById vraća projekat na osnovu ID-a
+
 func (s *ProjectService) GetProjectById(ctx context.Context, projectId string) (*model.Project, error) {
 	return s.repo.GetProjectById(ctx, projectId)
 }
 
-// UserExists proverava da li korisnik postoji u user-service
+
 func (s *ProjectService) UserExists(ctx context.Context, memberId primitive.ObjectID) (bool, error) {
-	url := fmt.Sprintf("http://localhost:8080/users/%s", memberId.Hex()) // Zameni sa stvarnim URL-om user-service
+	url := fmt.Sprintf("http://localhost:8080/users/%s", memberId.Hex()) 
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Get(url)
@@ -45,23 +47,23 @@ func (s *ProjectService) UserExists(ctx context.Context, memberId primitive.Obje
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
-		return true, nil // Korisnik postoji
+		return true, nil 
 	} else if resp.StatusCode == http.StatusNotFound {
-		return false, nil // Korisnik ne postoji
+		return false, nil 
 	}
 
 	return false, fmt.Errorf("error checking user existence: %s", resp.Status)
 }
 
-// AddMemberToProject dodaje člana u projekat
+
 func (s *ProjectService) AddMemberToProject(ctx context.Context, projectId string, memberId primitive.ObjectID) error {
-	// Proveri da li korisnik postoji
+
 	exists, err := s.UserExists(ctx, memberId)
 	if err != nil {
-		return err // Vraćamo grešku ako se desila
+		return err 
 	}
 	if !exists {
-		return fmt.Errorf("user does not exist") // Korisnik ne postoji
+		return fmt.Errorf("user does not exist") 
 	}
 
 	project, err := s.repo.GetProjectById(ctx, projectId)
@@ -83,4 +85,12 @@ func (s *ProjectService) AddMemberToProject(ctx context.Context, projectId strin
 	return s.repo.UpdateProject(ctx, project)
 }
 
-// Možete dodati i druge funkcije kao što su DeleteProject, UpdateProject, FindById...
+func (s *ProjectService) AddTaskToProject(ctx context.Context, projectId string, task *model.Task) error {
+	objID, err := primitive.ObjectIDFromHex(projectId)
+	if err != nil {
+		return err // Greška pri konverziji ID-a
+	}
+
+	return s.repo.AddTaskToProject(ctx, objID, task)
+}
+

@@ -1,5 +1,6 @@
 module github.com/milly013/trello-project/back/project-service
 
+
 go 1.22.2
 
 require (

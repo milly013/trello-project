@@ -6,6 +6,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	
+
 	"github.com/milly013/trello-project/back/project-service/model"
 	"github.com/milly013/trello-project/back/project-service/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -61,3 +64,24 @@ func (h *ProjectHandler) AddMemberToProject(c *gin.Context) {
 
 	c.JSON(http.StatusNoContent, nil)
 }
+
+func (h *ProjectHandler) AddTaskToProject(c *gin.Context) {
+	projectId := c.Param("projectId")
+	var task model.Task
+
+	if err := c.ShouldBindJSON(&task); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Postavljanje ID projekta u task
+	task.ProjectID, _ = primitive.ObjectIDFromHex(projectId)
+
+	err := h.service.AddTaskToProject(context.Background(), projectId, &task)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, task) // Vraćamo kreirani task kao odgovor
+}      

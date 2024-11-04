@@ -5,10 +5,13 @@ import (
 	"context"
 	"time"
 
+
+
 	"github.com/milly013/trello-project/back/project-service/model"
+	
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ProjectRepository struct {
@@ -61,13 +64,30 @@ func (repo *ProjectRepository) GetProjectById(ctx context.Context, projectId str
 	return &project, nil
 }
 
-
-
 func (repo *ProjectRepository) UpdateProject(ctx context.Context, project *model.Project) error {
 	_, err := repo.collection.UpdateOne(
 		ctx,
 		bson.M{"_id": project.ID},
 		bson.M{"$set": project},
+	)
+	return err
+}
+
+func (repo *ProjectRepository) AddTaskToProject(ctx context.Context, projectId primitive.ObjectID, task *model.Task) error {
+	task.CreatedAt = time.Now() // Postavi vreme kreiranja
+	task.ProjectID = projectId  // Poveži task sa projektom
+
+	// Umetanje taska u kolekciju
+	_, err := repo.taskCollection.InsertOne(ctx, task)
+	if err != nil {
+		return err
+	}
+
+	// Ažuriraj projekat da doda ID taska
+	_, err = repo.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": projectId},
+		bson.M{"$push": bson.M{"taskIds": task.ID}}, // Dodaj task ID u listu taskova
 	)
 	return err
 }

@@ -17,4 +17,6 @@ type Project struct {
 	IsActive   bool                 `bson:"isActive" json:"isActive"`
 	CreatedAt  time.Time            `bson:"createdAt" json:"createdAt"`
 	MemberIDs  []primitive.ObjectID `bson:"memberIds" json:"memberIds"`
+	TaskIDs    []primitive.ObjectID `bson:"taskIds" json:"taskIds"`
+
 }
