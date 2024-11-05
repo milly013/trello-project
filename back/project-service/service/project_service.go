@@ -123,3 +123,26 @@ func (s *ProjectService) AddTaskToProject(ctx context.Context, projectId string,
 	project.TaskIDs = append(project.TaskIDs, taskId)
 	return s.repo.UpdateProject(ctx, project)
 }
+
+// RemoveMemberFromProject uklanja člana iz projekta
+// Prebaci ovu funkciju iznutra druge funkcije
+func (s *ProjectService) RemoveMemberFromProject(ctx context.Context, projectId string, memberId primitive.ObjectID) error {
+	project, err := s.repo.GetProjectById(ctx, projectId)
+	if err != nil {
+		return err
+	}
+	if project == nil {
+		return fmt.Errorf("project not found")
+	}
+
+	// Proveri da li član postoji u projektu
+	for i, id := range project.MemberIDs {
+		if id == memberId {
+			// Ukloni člana
+			project.MemberIDs = append(project.MemberIDs[:i], project.MemberIDs[i+1:]...)
+			return s.repo.UpdateProject(ctx, project)
+		}
+	}
+
+	return fmt.Errorf("member not found in project")
+}

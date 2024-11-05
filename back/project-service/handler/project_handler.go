@@ -82,4 +82,24 @@ func (h *ProjectHandler) AddTaskToProject(c *gin.Context) {
 	}
 	// Vraćamo status 201 i kreirani task
 	c.JSON(http.StatusNoContent, nil)
+
+}
+func (h *ProjectHandler) RemoveMemberFromProject(c *gin.Context) {
+	projectId := c.Param("projectId")
+	var request struct {
+		MemberID primitive.ObjectID `json:"memberId"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.service.RemoveMemberFromProject(context.Background(), projectId, request.MemberID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
 }
