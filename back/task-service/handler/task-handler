@@ -2,7 +2,9 @@
 package handler
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milly013/trello-project/back/task-service/model"
@@ -25,7 +27,11 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.repo.CreateTask(c, &task); err != nil {
+	// Dodavanje trenutnog vremena za polje CreatedAt
+	task.CreatedAt = time.Now()
+
+	// Poziv TaskService za kreiranje zadatka
+	if err := h.taskService.AddTask(context.Background(), &task); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

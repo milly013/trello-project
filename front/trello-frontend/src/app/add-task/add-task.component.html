@@ -1,1 +1,39 @@
-<p>add-task works!</p>
+<div class="container mt-5">
+    <h2>Dodaj novi zadatak</h2>
+    <form (ngSubmit)="onSubmit()" #taskForm="ngForm">
+      <div class="mb-3">
+        <label for="title" class="form-label">Naziv zadatka</label>
+        <input type="text" id="title" class="form-control" [(ngModel)]="task.title" name="title" required />
+      </div>
+      <div class="mb-3">
+        <label for="description" class="form-label">Opis zadatka</label>
+        <textarea id="description" class="form-control" [(ngModel)]="task.description" name="description" required></textarea>
+      </div>
+      <div class="mb-3">
+        <label for="projectId" class="form-label">ID projekta</label>
+        <input type="text" id="projectId" class="form-control" [(ngModel)]="task.projectId" name="projectId" required />
+      </div>
+      <div class="mb-3">
+        <label for="startDate" class="form-label">Datum početka</label>
+        <input type="date" id="startDate" class="form-control" [(ngModel)]="task.startDate" name="startDate" required />
+      </div>
+      <div class="mb-3">
+        <label for="endDate" class="form-label">Datum završetka</label>
+        <input type="date" id="endDate" class="form-control" [(ngModel)]="task.endDate" name="endDate" required />
+      </div>
+      <div class="mb-3">
+        <label for="assignedTo" class="form-label">ID korisnika kojem je dodeljen</label>
+        <input type="text" id="assignedTo" class="form-control" [(ngModel)]="task.assignedTo" name="assignedTo" required />
+      </div>
+      <div class="mb-3">
+        <label for="status" class="form-label">Status</label>
+        <select id="status" class="form-select" [(ngModel)]="task.status" name="status" required>
+          <option value="Pending">Pending</option>
+          <option value="InProgress">InProgress</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="taskForm.invalid">Dodaj zadatak</button>
+    </form>
+  </div>
+  
