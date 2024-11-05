@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/handlers"
 
 	"github.com/milly013/trello-project/back/user-service/handler"
 	"github.com/milly013/trello-project/back/user-service/repository"
@@ -41,7 +43,23 @@ func main() {
 	router.GET("/users", userHandler.GetUsers)
 	router.GET("/users/:id", userHandler.GetUserByID) // Dodana ruta za preuzimanje korisnika po ID-u
 
-	router.Run(":8080")
+	//router.Run(":8080")
+
+
+	corsHandler := handlers.CORS(
+        handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Set the correct origin
+        handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
+        handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+    )
+
+    srv := &http.Server{
+
+        Handler: corsHandler(router),
+        Addr:    ":8080",
+    }
+
+	log.Println("Server is running on port 8080")
+    log.Fatal(srv.ListenAndServe())
 }
 
 // Funkcija za povezivanje na MongoDB

@@ -22,6 +22,13 @@ func NewProjectHandler(service *service.ProjectService) *ProjectHandler {
 
 func (h *ProjectHandler) CreateProject(c *gin.Context) {
 	var project model.Project
+
+
+	//pokusaj
+
+	//do ovog
+
+
 	if err := c.ShouldBindJSON(&project); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

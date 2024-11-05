@@ -1,7 +1,14 @@
 import { Routes } from '@angular/router';
 import { CreateProjectComponent } from './create-project-component/create-project-component.component';
 
+import { AddTaskComponent } from './add-task/add-task.component';
+import { AddUserComponent } from './add-user/add-user.component';
+import { RemoveUserComponent } from './remove-user/remove-user.component';
+
 export const appRoutes: Routes = [
-  { path: '', component: CreateProjectComponent },
+  { path: 'create-project', component: CreateProjectComponent },
+  { path: 'add-task',component: AddTaskComponent},
+  { path:'add-user',component:AddUserComponent},
+  { path:'remove-user'  ,component:RemoveUserComponent}
   
 ];

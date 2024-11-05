@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/handlers"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -33,9 +35,24 @@ func main() {
 	router.GET("/tasks", getTasks)
 	router.PUT("/tasks/:id", updateTask)
 	router.DELETE("/tasks/:id", deleteTask)
-	
 
-	router.Run(":8082")
+	//router.Run(":8082")
+
+	corsHandler := handlers.CORS(
+		handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Set the correct origin
+		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+	)
+
+	srv := &http.Server{
+
+		Handler: corsHandler(router),
+		Addr:    ":8082",
+	}
+
+	log.Println("Server is running on port 8082")
+	log.Fatal(srv.ListenAndServe())
+
 }
 
 // Funkcija za povezivanje na MongoDB
