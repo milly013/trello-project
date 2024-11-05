@@ -20,3 +20,7 @@ func NewTaskService(taskRepo *repository.TaskRepository) *TaskService {
 func (s *TaskService) AddTask(ctx context.Context, task *model.Task) error {
 	return s.taskRepo.CreateTask(ctx, task)
 }
+
+func (s *TaskService) GetAllTasks(ctx context.Context) ([]model.Task, error) {
+	return s.taskRepo.GetAllTasks(ctx) // Poziva metodu iz repozitorijuma
+}

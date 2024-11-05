@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/milly013/trello-project/back/task-service/handler"
+	"github.com/milly013/trello-project/back/task-service/repository"
+	"github.com/milly013/trello-project/back/task-service/service"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,12 +31,15 @@ func main() {
 
 	router := gin.Default()
 
+	taskRepo := repository.NewTaskRepository(taskCollection)
+	taskService := service.NewTaskService(taskRepo)
+	taskHandler := handler.NewTaskHandler(taskService)
+
 	// API rute za zadatke
-	router.POST("/tasks", createTask)
-	router.GET("/tasks", getTasks)
+	router.POST("/tasks", taskHandler.CreateTask)
+	router.GET("/tasks", taskHandler.GetTasks)
 	router.PUT("/tasks/:id", updateTask)
 	router.DELETE("/tasks/:id", deleteTask)
-	
 
 	router.Run(":8082")
 }

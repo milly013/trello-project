@@ -1,4 +1,3 @@
-// handler/task_handler.go
 package handler
 
 import (
@@ -6,15 +5,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/milly013/trello-project/back/task-service/model"
-	"github.com/milly013/trello-project/back/task-service/repository"
+	"github.com/milly013/trello-project/back/task-service/service"
 )
 
 type TaskHandler struct {
-	repo *repository.TaskRepository
+	service *service.TaskService // Menjamo repo u service
 }
 
-func NewTaskHandler(repo *repository.TaskRepository) *TaskHandler {
-	return &TaskHandler{repo: repo}
+func NewTaskHandler(service *service.TaskService) *TaskHandler {
+	return &TaskHandler{service: service} // Dodeljujemo servis
 }
 
 // Handler za dodavanje novog zadatka
@@ -25,7 +24,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.repo.CreateTask(c, &task); err != nil {
+	if err := h.service.AddTask(c, &task); err != nil { // Koristimo servis
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -35,7 +34,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 
 // Handler za dobijanje svih zadataka
 func (h *TaskHandler) GetTasks(c *gin.Context) {
-	tasks, err := h.repo.GetAllTasks(c)
+	tasks, err := h.service.GetAllTasks(c) // Koristimo servis
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
