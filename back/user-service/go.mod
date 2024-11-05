@@ -1,12 +1,13 @@
 module github.com/milly013/trello-project/back/user-service
 
-
 go 1.22.2
 
 require (
 	github.com/gin-gonic/gin v1.10.0
 	go.mongodb.org/mongo-driver v1.17.1
 )
+
+require github.com/felixge/httpsnoop v1.0.3 // indirect
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
@@ -20,6 +21,7 @@ require (
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/gorilla/handlers v1.5.2
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect

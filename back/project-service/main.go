@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -14,6 +15,8 @@ import (
 	"github.com/milly013/trello-project/back/project-service/service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/gorilla/handlers"
+    
 )
 
 func main() {
@@ -49,7 +52,22 @@ func main() {
 	router.DELETE("/projects/:projectId/members", projectHandler.RemoveMemberFromProject)
 
 	// Pokretanje servera
-	router.Run(":8081")
+	//router.Run(":8081")
+	
+	corsHandler := handlers.CORS(
+        handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Set the correct origin
+        handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
+        handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+    )
+
+    srv := &http.Server{
+
+        Handler: corsHandler(router),
+        Addr:    ":8081",
+    }
+
+	log.Println("Server is running on port 8081")
+    log.Fatal(srv.ListenAndServe())
 }
 
 func connectToMongoDB() (*mongo.Client, error) {
@@ -73,4 +91,6 @@ func connectToMongoDB() (*mongo.Client, error) {
 
 	fmt.Println("Connected to MongoDB!")
 	return client, nil
+
+
 }
