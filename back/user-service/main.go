@@ -41,14 +41,15 @@ func main() {
 	// API rute za korisnike
 	router.POST("/users", userHandler.CreateUser)
 	router.GET("/users", userHandler.GetUsers)
-	router.GET("/users/:id", userHandler.GetUserByID) // Dodana ruta za preuzimanje korisnika po ID-u
+	router.GET("/users/:id", userHandler.GetUserByID)
+	router.DELETE("/users/:id",userHandler) // Dodana ruta za preuzimanje korisnika po ID-u
 
 	//router.Run(":8080")
 
 
 	corsHandler := handlers.CORS(
         handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Set the correct origin
-        handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
+        handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS","DELETE"}),
         handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
     )
 
