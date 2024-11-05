@@ -46,6 +46,7 @@ func main() {
 	router.POST("/projects", projectHandler.CreateProject)
 	router.GET("/projects", projectHandler.GetProjects)
 	router.POST("/projects/:projectId/members", projectHandler.AddMemberToProject)
+	router.DELETE("/projects/:projectId/members", projectHandler.RemoveMemberFromProject)
 
 	// Pokretanje servera
 	router.Run(":8081")
