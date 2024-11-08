@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProjectService, Project } from '../service/project.service';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-create-project',
   standalone: true,
   templateUrl: './create-project-component.component.html',
   styleUrls: ['./create-project-component.component.css'],
-  imports: [ReactiveFormsModule, ],
+  imports: [ReactiveFormsModule, HttpClientModule],
   providers: [ProjectService]
 })
 export class CreateProjectComponent implements OnInit {

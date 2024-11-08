@@ -14,8 +14,8 @@ export interface Project {
   providedIn: 'root'
 })
 export class ProjectService {
-  private apiUrl = 'http://localhost:8081'; // URL vašeg API-a
-
+  private apiUrl = 'http://localhost:8081'; 
+  
   constructor(private http: HttpClient) { }
 
   createProject(project: Project): Observable<Project> {
