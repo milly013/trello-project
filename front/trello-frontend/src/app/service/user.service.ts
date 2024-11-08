@@ -39,10 +39,15 @@ export class UserService {
   
 
   // Metoda za uklanjanje korisnika
-  removeUser(userId: string): Observable<void> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-    return this.http.delete<void>(`${this.apiUrl}/${userId}`, { headers });
-  }
+  removeUserFromProject(projectId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/projects/${projectId}/members`;
+    const options = {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: { userId: userId } 
+    };
+    return this.http.delete(url, options);
+}
+
 }

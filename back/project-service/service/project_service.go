@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -124,8 +125,7 @@ func (s *ProjectService) AddTaskToProject(ctx context.Context, projectId string,
 	return s.repo.UpdateProject(ctx, project)
 }
 
-// RemoveMemberFromProject uklanja člana iz projekta
-// Prebaci ovu funkciju iznutra druge funkcije
+
 func (s *ProjectService) RemoveMemberFromProject(ctx context.Context, projectId string, memberId primitive.ObjectID) error {
 	project, err := s.repo.GetProjectById(ctx, projectId)
 	if err != nil {
@@ -140,6 +140,9 @@ func (s *ProjectService) RemoveMemberFromProject(ctx context.Context, projectId 
 		if id == memberId {
 			// Ukloni člana
 			project.MemberIDs = append(project.MemberIDs[:i], project.MemberIDs[i+1:]...)
+
+			log.Println("adsadsadsadsads")
+
 			return s.repo.UpdateProject(ctx, project)
 		}
 	}
