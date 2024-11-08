@@ -9,11 +9,11 @@ import (
 )
 
 type TaskHandler struct {
-	service *service.TaskService // Menjamo repo u service
+	service *service.TaskService
 }
 
 func NewTaskHandler(service *service.TaskService) *TaskHandler {
-	return &TaskHandler{service: service} // Dodeljujemo servis
+	return &TaskHandler{service: service}
 }
 
 // Handler za dodavanje novog zadatka
@@ -24,7 +24,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.AddTask(c, &task); err != nil { // Koristimo servis
+	if err := h.service.AddTask(c, &task); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -34,7 +34,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 
 // Handler za dobijanje svih zadataka
 func (h *TaskHandler) GetTasks(c *gin.Context) {
-	tasks, err := h.service.GetAllTasks(c) // Koristimo servis
+	tasks, err := h.service.GetAllTasks(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

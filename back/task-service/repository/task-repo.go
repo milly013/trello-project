@@ -21,25 +21,24 @@ func (r *TaskRepository) CreateTask(ctx context.Context, task *model.Task) error
 	return err
 }
 func (r *TaskRepository) GetAllTasks(ctx context.Context) ([]model.Task, error) {
-	cursor, err := r.collection.Find(ctx, bson.M{}) // Pronađite sve zadatke
+	cursor, err := r.collection.Find(ctx, bson.M{})
 	if err != nil {
-		return nil, err // Vraćamo grešku ako dođe do problema sa upitom
+		return nil, err
 	}
-	defer cursor.Close(ctx) // Zatvorite kursor kada završite
+	defer cursor.Close(ctx)
 
 	var tasks []model.Task
 	for cursor.Next(ctx) {
 		var task model.Task
-		if err := cursor.Decode(&task); err != nil { // Dekodirajte zadatak
-			return nil, err // Vraćamo grešku ako dekodiranje ne uspe
+		if err := cursor.Decode(&task); err != nil {
+			return nil, err
 		}
-		tasks = append(tasks, task) // Dodajte zadatak u slice
+		tasks = append(tasks, task)
 	}
 
-	// Proverite da li je bilo grešaka tokom iteracije
 	if err := cursor.Err(); err != nil {
 		return nil, err
 	}
 
-	return tasks, nil // Vraćamo slice sa svim zadacima
+	return tasks, nil
 }

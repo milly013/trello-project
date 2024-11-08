@@ -22,5 +22,5 @@ func (s *TaskService) AddTask(ctx context.Context, task *model.Task) error {
 }
 
 func (s *TaskService) GetAllTasks(ctx context.Context) ([]model.Task, error) {
-	return s.taskRepo.GetAllTasks(ctx) // Poziva metodu iz repozitorijuma
+	return s.taskRepo.GetAllTasks(ctx)
 }
