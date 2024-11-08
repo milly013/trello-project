@@ -6,12 +6,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/milly013/trello-project/back/task-service/handler"
+	"github.com/milly013/trello-project/back/task-service/repository"
+	"github.com/milly013/trello-project/back/task-service/service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var projectCollection *mongo.Collection
+var taskCollection *mongo.Collection
 
 func main() {
 	// Povezivanje na MongoDB
@@ -22,48 +26,54 @@ func main() {
 	defer client.Disconnect(context.TODO())
 
 	// Referenca na kolekciju
-	projectCollection = client.Database("mydatabase").Collection("tasks")
+	taskCollection = client.Database("mydatabase").Collection("tasks")
 
 	router := gin.Default()
 
-	// API ruta za korisnike
-	router.GET("/tasks", getUsers)
+	// CORS konfiguracija
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:4200"},            // Dozvoljava sve origene, možete ograničiti na specifične URL-ove
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},     // Dozvoljeni HTTP metodi
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"}, // Dozvoljeni HTTP headeri
+		AllowCredentials: true,
+	}))
+
+	taskRepo := repository.NewTaskRepository(taskCollection)
+	taskService := service.NewTaskService(taskRepo)
+	taskHandler := handler.NewTaskHandler(taskService)
+
+	// API rute za zadatke
+	router.POST("/tasks", taskHandler.CreateTask)
+	router.GET("/tasks", taskHandler.GetTasks)
+	// router.PUT("/tasks/:id", updateTask)
+	// router.DELETE("/tasks/:id", deleteTask)
 
 	router.Run(":8082")
 }
 
-// Funkcija za povezivanje na MongoDB
 func connectToMongoDB() (*mongo.Client, error) {
-	// Opcije konekcije
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 
-	// Kreiramo novi MongoDB klijent
+	// Pokušajte da se povežete bez ponovnog povezivanja ako je već povezano
 	client, err := mongo.NewClient(clientOptions)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 
-	// Povezujemo se na MongoDB server
+	// Povezivanje sa MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err = client.Connect(ctx)
-	if err != nil {
+	// Povežite se na MongoDB ako to nije već urađeno
+	if err := client.Connect(ctx); err != nil {
 		return nil, err
 	}
 
-	// Testiramo konekciju
-	err = client.Ping(ctx, nil)
-	if err != nil {
+	// Pokušajte da pingujete bazu da biste proverili konekciju
+	if err := client.Ping(ctx, nil); err != nil {
 		return nil, err
 	}
 
 	fmt.Println("Connected to MongoDB!")
 	return client, nil
-}
-
-// Handler za GET /users
-func getUsers(c *gin.Context) {
-	// Dummy podaci za testiranje, kasnije ćemo ih zameniti podacima iz baze
-	c.JSON(200, gin.H{"message": "Retrieve users from MongoDB here"})
 }
