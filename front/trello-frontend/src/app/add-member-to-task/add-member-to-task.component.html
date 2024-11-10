@@ -1,0 +1,34 @@
+<!-- add-member-to-task.component.html -->
+<div class="container mt-5">
+    <div class="card shadow-lg">
+      <div class="card-header text-white bg-primary">
+        <h2 class="mb-0">Add Member to Task</h2>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="addMemberToTask()" [formGroup]="memberForm">
+          <div class="form-group">
+            <label for="taskId">Task ID</label>
+            <input
+              type="text"
+              class="form-control"
+              id="taskId"
+              formControlName="taskId"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="userId">User ID</label>
+            <input
+              type="text"
+              class="form-control"
+              id="userId"
+              formControlName="userId"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary mt-3">Add Member</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  

@@ -55,4 +55,13 @@ export class UserService {
 
     return this.http.post<any>(`${this.apiUrl}/users/register`, userData, { headers });
   }
+
+  
+  addMemberToTask(taskId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/tasks/${taskId}/members`;
+    const body = { userId: userId };
+    return this.http.post<any>(url, body, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    });
+  }
 }
