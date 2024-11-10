@@ -6,6 +6,7 @@ import { AddUserComponent } from './add-user/add-user.component';
 import { RemoveUserComponent } from './remove-user/remove-user.component';
 import { RegistrationComponent } from './registration/registration.component';
 import { AddMemberToTaskComponent } from './add-member-to-task/add-member-to-task.component';
+import { RemoveMemberFromTaskComponent } from './remove-member-from-task/remove-member-from-task.component';
 
 export const appRoutes: Routes = [
   { path: 'create-project', component: CreateProjectComponent },
@@ -14,5 +15,6 @@ export const appRoutes: Routes = [
   { path:'remove-user'  ,component:RemoveUserComponent},
   { path:'registration',component:RegistrationComponent},
   { path:'add-member-to-task',component:AddMemberToTaskComponent},
+  { path: 'remove-member-from-task', component: RemoveMemberFromTaskComponent }
 
 ];
