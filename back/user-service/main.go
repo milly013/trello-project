@@ -27,11 +27,12 @@ func main() {
 	}
 	defer client.Disconnect(context.TODO())
 
-	// Referenca na kolekciju
-	projectCollection = client.Database("mydatabase").Collection("users")
+	// Kreiramo instancu baze podataka
+	db := client.Database("mydatabase")
+	projectCollection = db.Collection("users")
 
 	// Kreirajte repozitorijum
-	userRepo := repository.NewUserRepository(client, "mydatabase")
+	userRepo := repository.NewUserRepository(db)
 
 	// Kreirajte UserHandler
 	userHandler := handler.NewUserHandler(userRepo)
@@ -43,18 +44,14 @@ func main() {
 	router.GET("/users", userHandler.GetUsers)
 	router.GET("/users/:id", userHandler.GetUserByID)
 
-	// Dodana ruta za preuzimanje korisnika po ID-u
-
-	//router.Run(":8080")
-
+	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Set the correct origin
+		handlers.AllowedOrigins([]string{"http://localhost:4200"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
 	)
 
 	srv := &http.Server{
-
 		Handler: corsHandler(router),
 		Addr:    ":8080",
 	}
