@@ -10,13 +10,12 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/handlers"
 	"github.com/milly013/trello-project/back/project-service/handler"
 	"github.com/milly013/trello-project/back/project-service/repository"
 	"github.com/milly013/trello-project/back/project-service/service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"github.com/gorilla/handlers"
-    
 )
 
 func main() {
