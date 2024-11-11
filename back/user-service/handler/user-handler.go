@@ -2,13 +2,13 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
+	"net/smtp"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"gopkg.in/gomail.v2"
-
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
 
@@ -32,15 +32,11 @@ func generateVerificationCode() string {
 
 // Funkcija za slanje verifikacionog emaila
 func sendVerificationEmail(toEmail, verificationCode string) error {
-	mail := gomail.NewMessage()
-	mail.SetHeader("From", "your-email@example.com") // Postavi svoj email
-	mail.SetHeader("To", toEmail)
-	mail.SetHeader("Subject", "Verifikacija korisničkog naloga")
-	mail.SetBody("text/plain", fmt.Sprintf("Vaš verifikacioni kod je: %s", verificationCode))
-
-	dialer := gomail.NewDialer("smtp.example.com", 587, "your-email@example.com", "your-email-password")
-	if err := dialer.DialAndSend(mail); err != nil {
-		return err
+	msg := []byte(fmt.Sprintf("Subject: Verifikacioni kod\n\nVas verifikacioni kod je: %s", verificationCode))
+	auth := smtp.PlainAuth("", "teodosicmilos700@gmail.com", "azjjqovkylstwcjl", "smtp.gmail.com")
+	err := smtp.SendMail(fmt.Sprintf("%s:%s", "smtp.gmail.com", "587"), auth, "teodosicmilos700@gmail.com", []string{toEmail}, msg)
+	if err != nil {
+		log.Println("jebiga")
 	}
 
 	return nil
@@ -60,6 +56,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	
 	if exists {
 		c.JSON(http.StatusConflict, gin.H{"error": "User with given username or email already exists"})
 		return
