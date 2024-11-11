@@ -23,9 +23,11 @@ func NewProjectRepository(db *mongo.Database) *ProjectRepository {
 }
 
 // CreateProject - kreira novi projekat u bazi
-func (repo *ProjectRepository) CreateProject(ctx context.Context, project *model.Project) (*mongo.InsertOneResult, error) {
+func (repo ProjectRepository) CreateProject(ctx context.Context, project *model.Project) (*mongo.InsertOneResult, error) {
 	project.CreatedAt = time.Now()
 	project.IsActive = true
+	project.MemberIDs = []primitive.ObjectID{}
+	project.TaskIDs = []primitive.ObjectID{}
 	return repo.collection.InsertOne(ctx, project)
 
 }
