@@ -1,4 +1,3 @@
-// handler/task_handler.go
 package handler
 
 import (
@@ -7,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/milly013/trello-project/back/task-service/model"
 	"github.com/milly013/trello-project/back/task-service/repository"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type TaskHandler struct {
@@ -17,7 +17,7 @@ func NewTaskHandler(repo *repository.TaskRepository) *TaskHandler {
 	return &TaskHandler{repo: repo}
 }
 
-// Handler za dodavanje novog zadatka
+// Handler za kreiranje novog zadatka
 func (h *TaskHandler) CreateTask(c *gin.Context) {
 	var task model.Task
 	if err := c.ShouldBindJSON(&task); err != nil {
@@ -25,7 +25,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.repo.CreateTask(c, &task); err != nil {
+	if err := h.repo.CreateTask(c, &task); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -42,4 +42,61 @@ func (h *TaskHandler) GetTasks(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, tasks)
+}
+
+// Handler za dobijanje zadatka po ID-u
+func (h *TaskHandler) GetTaskById(c *gin.Context) {
+	taskId := c.Param("taskId")
+	task, err := h.repo.GetTaskById(c, taskId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if task == nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Task not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, task)
+}
+
+// Handler za ažuriranje zadatka
+func (h *TaskHandler) UpdateTask(c *gin.Context) {
+	var task model.Task
+	if err := c.ShouldBindJSON(&task); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.repo.UpdateTask(c, &task); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, task)
+}
+
+// Handler za dodavanje člana na zadatak
+func (h *TaskHandler) AddMemberToTask(c *gin.Context) {
+	var request struct {
+		TaskID   string             `json:"taskId"`
+		MemberID primitive.ObjectID `json:"memberId"`
+	}
+
+	// Bind JSON body u strukturu request
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Pozivanje metode iz repository-ja da dodamo člana na zadatak
+	err := h.repo.AddMemberToTask(c, request.TaskID, request.MemberID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Uspešan odgovor
+	c.JSON(http.StatusOK, gin.H{"message": "Member added to task successfully"})
 }
