@@ -1,6 +1,7 @@
 package handler
 
 import (
+	
 	"fmt"
 	"log"
 	"math/rand"
@@ -8,7 +9,7 @@ import (
 	"net/smtp"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"	
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
 
@@ -140,4 +141,27 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, users)
+}
+
+
+
+// Verifikacija korisnika
+func (h *UserHandler) VerifyUser(c *gin.Context) {
+	email := c.Param("email")
+	code := c.Param("code")
+
+	// Pozovi metodu iz repozitorijuma za verifikaciju korisnika
+	success, err := h.repo.VerifyUserAndActivate(c, email, code)
+	if err != nil {
+		log.Printf("Error during verification: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Verification failed"})
+		return
+	}
+
+	if !success {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid verification code"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User successfully verified and activated"})
 }

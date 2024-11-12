@@ -43,6 +43,7 @@ func main() {
 	router.POST("/users", userHandler.CreateUser)
 	router.GET("/users", userHandler.GetUsers)
 	router.GET("/users/:id", userHandler.GetUserByID)
+	router.POST("/verify/:email/:code", userHandler.VerifyUser)
 
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(

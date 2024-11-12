@@ -87,3 +87,42 @@ func (r *UserRepository) GetAllUsers(ctx context.Context) ([]model.User, error) 
 	}
 	return users, nil
 }
+
+
+
+func (r *UserRepository) VerifyUserAndActivate(ctx context.Context, email, code string) (bool, error) {
+	// Filtriraj korisnika prema email-u i verifikacionom kodu
+	filter := bson.M{"email": email, "verificationCode": code}
+
+	var user model.User
+	err := r.collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		// Ako korisnik nije pronađen, vrati false
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, err // Ako je došlo do druge greške
+	}
+
+	// Ako se korisnik pronađe, ažuriraj njegov status na aktiviran
+	_, err = r.collection.UpdateOne(ctx, bson.M{"email": email}, bson.M{
+		"$set": bson.M{
+			"isActive": true,
+		},
+	})
+	if err != nil {
+		return false, err
+	}
+
+	// Opcionalno: Ukloni verifikacioni kod iz baze
+	_, err = r.collection.UpdateOne(ctx, bson.M{"email": email}, bson.M{
+		"$unset": bson.M{
+			"verificationCode": "",
+		},
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}

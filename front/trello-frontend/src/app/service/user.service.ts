@@ -55,4 +55,26 @@ export class UserService {
 
     return this.http.post<any>(`${this.apiUrl}/users/register`, userData, { headers });
   }
+
+  // **Nova metoda za slanje verifikacionog koda korisniku** 📧
+  sendVerificationCode(email: string): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    const body = { email: email };
+
+    return this.http.post<any>(`${this.apiUrl}/users/send-verification-code`, body, { headers });
+  }
+
+  // **Nova metoda za verifikaciju korisnika pomoću koda** ✅
+  verifyUser(email: string, code: string): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    const body = { email: email, code: code };
+
+    return this.http.post<any>(`${this.apiUrl}/users/verify`, body, { headers });
+  }
 }
