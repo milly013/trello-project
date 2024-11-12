@@ -14,3 +14,4 @@ export const appRoutes: Routes = [
   { path:'registration',component:RegistrationComponent}
   
 ];
+ 
