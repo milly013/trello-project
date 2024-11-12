@@ -14,10 +14,10 @@ RUN go mod tidy
 COPY . .
 
 # Build the application
-RUN go build -o project-service .
+RUN go build -o user-service .
 
 # Expose port
-EXPOSE 8081
+EXPOSE 8080
 
 # Run the application
-CMD ["./project-service"]
+CMD ["./user-service"]
