@@ -8,24 +8,22 @@ import { CommonModule } from '@angular/common';
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]  // Direktno uvozimo potrebne module
+  imports: [CommonModule, ReactiveFormsModule] // Direktno uvozimo potrebne module
 })
 export class RegistrationComponent {
   registrationForm: FormGroup;
 
   constructor(private fb: FormBuilder, private http: HttpClient) { // Dodaj HttpClient u konstruktor
     this.registrationForm = this.fb.group({
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      username: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required]]
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
   register(): void {
     if (this.registrationForm.invalid) {
-      alert('Please complete all required fields correctly.');
+      alert('Molimo popunite sva obavezna polja ispravno.');
       return;
     }
 
@@ -35,12 +33,12 @@ export class RegistrationComponent {
     this.http.post('http://localhost:8080/users', formData)
       .subscribe({
         next: (response) => {
-          console.log('User registered successfully', response);
-          alert('Registration successful!');
+          console.log('Korisnik je uspešno registrovan', response);
+          alert('Registracija je uspešna!');
         },
         error: (error) => {
-          console.error('Error during registration', error);
-          alert('An error occurred while registering.');
+          console.error('Greška tokom registracije', error);
+          alert('Došlo je do greške prilikom registracije.');
         }
       });
   }
