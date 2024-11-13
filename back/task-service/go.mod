@@ -1,13 +1,16 @@
 module github.com/milly013/trello-project/back/task-service
 
-go 1.22.2
+go 1.20
 
 require (
 	github.com/gin-gonic/gin v1.10.0
 	go.mongodb.org/mongo-driver v1.17.1
 )
 
-require github.com/felixge/httpsnoop v1.0.3 // indirect
+require (
+	github.com/felixge/httpsnoop v1.0.3 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
+)
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect

@@ -3,6 +3,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,11 +24,9 @@ func NewProjectHandler(service *service.ProjectService) *ProjectHandler {
 func (h *ProjectHandler) CreateProject(c *gin.Context) {
 	var project model.Project
 
-
 	//pokusaj
 
 	//do ovog
-
 
 	if err := c.ShouldBindJSON(&project); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -60,6 +59,8 @@ func (h *ProjectHandler) AddMemberToProject(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// Logovanje podataka
+	fmt.Printf("Adding member with ID %s to project with ID %s\n", request.MemberID, projectId)
 
 	err := h.service.AddMemberToProject(context.Background(), projectId, request.MemberID)
 	if err != nil {
@@ -97,16 +98,19 @@ func (h *ProjectHandler) RemoveMemberFromProject(c *gin.Context) {
 		MemberID primitive.ObjectID `json:"memberId"`
 	}
 
+	// Verifikujemo da li je JSON ispravno vezan
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Pozivamo servis za uklanjanje člana
 	err := h.service.RemoveMemberFromProject(context.Background(), projectId, request.MemberID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Vraćamo status 204 (No Content) kao potvrdu da je član uspešno uklonjen
 	c.JSON(http.StatusNoContent, nil)
 }
