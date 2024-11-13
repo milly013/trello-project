@@ -5,10 +5,8 @@ import (
 	"context"
 	"time"
 
-
-
 	"github.com/milly013/trello-project/back/project-service/model"
-	
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -72,4 +70,3 @@ func (repo *ProjectRepository) UpdateProject(ctx context.Context, project *model
 	)
 	return err
 }
-

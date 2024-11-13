@@ -50,6 +50,15 @@ func (r *TaskRepository) AddUserToTask(ctx context.Context, taskID, userID primi
 	_, err := r.collection.UpdateOne(ctx, filter, update)
 	return err
 }
+func (r *TaskRepository) RemoveUserFromTask(ctx context.Context, taskID, userID primitive.ObjectID) error {
+	filter := bson.M{"_id": taskID}
+	update := bson.M{
+		"$pull": bson.M{"assignedTo": userID},
+	}
+
+	_, err := r.collection.UpdateOne(ctx, filter, update)
+	return err
+}
 
 func (r *TaskRepository) GetTaskById(ctx context.Context, taskId string) (*model.Task, error) {
 	var task model.Task

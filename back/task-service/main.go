@@ -50,6 +50,7 @@ func main() {
 	router.PUT("/tasks/:id", taskHandler.UpdateTask)
 	router.GET("/tasks/:id", taskHandler.GetTaskById)
 	router.POST("/tasks/add-member", taskHandler.AssignMemberToTask)
+	router.DELETE("/tasks/remove-member", taskHandler.RemoveMemberFromTask)
 
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(

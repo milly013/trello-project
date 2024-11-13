@@ -98,16 +98,19 @@ func (h *ProjectHandler) RemoveMemberFromProject(c *gin.Context) {
 		MemberID primitive.ObjectID `json:"memberId"`
 	}
 
+	// Verifikujemo da li je JSON ispravno vezan
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Pozivamo servis za uklanjanje člana
 	err := h.service.RemoveMemberFromProject(context.Background(), projectId, request.MemberID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Vraćamo status 204 (No Content) kao potvrdu da je član uspešno uklonjen
 	c.JSON(http.StatusNoContent, nil)
 }
