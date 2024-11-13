@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "trello-frontend": {
+    "sitpassapp": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/trello-frontend",
+            "outputPath": "dist/sitpassapp",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -38,6 +38,7 @@
             "ssr": {
               "entry": "server.ts"
             }
+
           },
           "configurations": {
             "production": {
@@ -67,10 +68,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "trello-frontend:build:production"
+              "buildTarget": "sitpassapp:build:production"
             },
             "development": {
-              "buildTarget": "trello-frontend:build:development"
+              "buildTarget": "sitpassapp:build:development"
             }
           },
           "defaultConfiguration": "development"

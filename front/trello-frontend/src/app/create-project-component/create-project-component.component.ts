@@ -8,8 +8,13 @@ import { HttpClientModule } from '@angular/common/http';
   standalone: true,
   templateUrl: './create-project-component.component.html',
   styleUrls: ['./create-project-component.component.css'],
+<<<<<<< HEAD
   imports: [ReactiveFormsModule, HttpClientModule],
   providers: [ProjectService]
+=======
+  imports: [ReactiveFormsModule], // Uverite se da je ovde sve što vam treba
+  providers: [ProjectService] // Obezbeđivanje servisa
+>>>>>>> develop
 })
 export class CreateProjectComponent implements OnInit {
   projectForm: FormGroup;
@@ -31,7 +36,7 @@ export class CreateProjectComponent implements OnInit {
       this.projectService.createProject(this.projectForm.value).subscribe({
         next: (response) => {
           console.log('Project added successfully', response);
-          this.projectForm.reset(); // Resetuj formu nakon dodavanja
+          this.projectForm.reset();
         },
         error: (error) => {
           console.error('Error adding project', error);
@@ -42,5 +47,4 @@ export class CreateProjectComponent implements OnInit {
       });
     }
   }
-  
 }

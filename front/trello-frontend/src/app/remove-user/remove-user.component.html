@@ -1,0 +1,20 @@
+<div class="container mt-5" style="margin-top: 110px !important">
+  <div class="card shadow-lg">
+      <div class="card-header text-white bg-primary">
+          <h2 class="mb-0">Remove User from Project</h2>
+      </div>
+      <div class="card-body">
+          <form [formGroup]="removeUserForm" (ngSubmit)="removeUser()">
+              <div class="form-group">
+                  <label for="projectId">ID Project</label>
+                  <input type="text" id="projectId" formControlName="projectId" class="form-control" required>
+              </div>
+              <div class="form-group mt-3">
+                  <label for="userId">ID User</label>
+                  <input type="text" id="userId" formControlName="userId" class="form-control" required>
+              </div>
+              <button type="submit" class="btn btn-primary mt-4">Remove User</button>
+          </form>
+      </div>
+  </div>
+</div>
