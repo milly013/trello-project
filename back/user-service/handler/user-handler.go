@@ -1,7 +1,6 @@
 package handler
 
 import (
-	
 	"fmt"
 	"log"
 	"math/rand"
@@ -9,7 +8,7 @@ import (
 	"net/smtp"
 	"time"
 
-	"github.com/gin-gonic/gin"	
+	"github.com/gin-gonic/gin"
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
 
@@ -38,6 +37,7 @@ func sendVerificationEmail(toEmail, verificationCode string) error {
 	err := smtp.SendMail(fmt.Sprintf("%s:%s", "smtp.gmail.com", "587"), auth, "teodosicmilos700@gmail.com", []string{toEmail}, msg)
 	if err != nil {
 		log.Println("jebiga")
+		return err // Dodajte ovaj red
 	}
 
 	return nil
@@ -57,7 +57,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	if exists {
 		c.JSON(http.StatusConflict, gin.H{"error": "User with given username or email already exists"})
 		return
@@ -116,6 +116,19 @@ func (h *UserHandler) VerifyCode(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
 
+// Brisanje korisnika po ID-u
+func (h *UserHandler) DeleteUserByID(c *gin.Context) {
+	id := c.Param("id")
+
+	err := h.repo.DeleteUserByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
 // Handler za preuzimanje korisnika po ID-u
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	id := c.Param("id")
@@ -142,8 +155,6 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, users)
 }
-
-
 
 // Verifikacija korisnika
 func (h *UserHandler) VerifyUser(c *gin.Context) {

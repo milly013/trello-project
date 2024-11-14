@@ -8,13 +8,8 @@ import { HttpClientModule } from '@angular/common/http';
   standalone: true,
   templateUrl: './create-project-component.component.html',
   styleUrls: ['./create-project-component.component.css'],
-<<<<<<< HEAD
-  imports: [ReactiveFormsModule, HttpClientModule],
-  providers: [ProjectService]
-=======
-  imports: [ReactiveFormsModule], // Uverite se da je ovde sve što vam treba
-  providers: [ProjectService] // Obezbeđivanje servisa
->>>>>>> develop
+  imports: [ReactiveFormsModule],
+  providers: [ProjectService] 
 })
 export class CreateProjectComponent implements OnInit {
   projectForm: FormGroup;

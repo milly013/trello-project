@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-verification',
@@ -13,7 +14,7 @@ import { CommonModule } from '@angular/common';
 export class VerificationComponent {
   verificationForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {
     this.verificationForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       verificationCode: ['', [Validators.required]]
@@ -37,6 +38,7 @@ export class VerificationComponent {
         next: (response) => {
           console.log('Verification successful', response);
           alert('You have successfully verified your account!');
+          this.router.navigate(['home-page'])
         },
         error: (error) => {
           console.error('Verification error', error);

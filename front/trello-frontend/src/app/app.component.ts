@@ -6,6 +6,8 @@ import { AppNavComponent } from './app-nav/app-nav.component';
 import { RemoveUserComponent } from './remove-user/remove-user.component';
 import { AddTaskComponent } from './add-task/add-task.component';
 import { AddUserComponent } from './add-user/add-user.component';
+import { HomeComponentComponent } from './home-component/home-component.component';
+import { FormsModule } from '@angular/forms';
 
 
 @Component({
@@ -13,7 +15,7 @@ import { AddUserComponent } from './add-user/add-user.component';
   standalone: true,
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  imports: [RouterOutlet, CreateProjectComponent,RemoveUserComponent,AddTaskComponent,AddUserComponent,AppNavComponent]
+  imports: [RouterOutlet,AppNavComponent,FormsModule]
 
 })
 export class AppComponent {

@@ -1,0 +1,24 @@
+<div class="container">
+    <h2>Lista Korisnika</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Korisničko ime</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.id }}</td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.isActive ? 'Aktivan' : 'Neaktivan' }}</td>
+          <td><Button class="btn btn-danger" (click)="deleteUser(user.id)">Delete</Button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  

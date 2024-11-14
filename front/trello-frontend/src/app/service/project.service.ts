@@ -3,11 +3,16 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Project {
+  id: string;
   name: string;
-  expected_end_date: string;
-  min_members: number;
-  max_members: number;
-  manager_id: string;
+  endDate: Date;
+  minMembers: number;
+  maxMembers: number;
+  managerId: string;
+  isActive: boolean;
+  createdAt: Date;
+  memberIds: string[];
+  taskIds: string[];
 }
 
 @Injectable({
@@ -24,5 +29,9 @@ export class ProjectService {
       'Content-Type': 'application/json'
     });
     return this.http.post<Project>(`${this.apiUrl}/projects`, project, { headers });
+  }
+
+  getProjects(): Observable<Project[]> {
+    return this.http.get<Project[]>(`${this.apiUrl}/projects`);
   }
 }

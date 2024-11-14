@@ -7,3 +7,9 @@
     font-size: 1rem;
   }
    */
+
+.pocetna{
+  text-decoration: none;
+  color: var(--bs-nav-link-color);
+  font-size: 22px;
+}

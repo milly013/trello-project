@@ -37,6 +37,7 @@ func main() {
 	userCollection = db.Collection("users")
 
 	userRepo := repository.NewUserRepository(db)
+	// userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userRepo)
 
 	router := gin.Default()
@@ -46,6 +47,7 @@ func main() {
 	router.GET("/users", userHandler.GetUsers)
 	router.GET("/users/:id", userHandler.GetUserByID)
 	router.POST("/verify/:email/:code", userHandler.VerifyUser)
+	router.DELETE("/users/:id", userHandler.DeleteUserByID)
 
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(

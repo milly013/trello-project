@@ -1,0 +1,27 @@
+<div class="container mt-4">
+    <h2>Lista Projekata</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Naziv</th>
+          <th>Datum završetka</th>
+          <th>Minimalno članova</th>
+          <th>Maksimalno članova</th>
+          <th>Aktivan</th>
+          <th>Datum kreiranja</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let project of projects">
+          <td>{{ project.name }}</td>
+          <td>{{ project.endDate | date }}</td>
+          <td>{{ project.minMembers }}</td>
+          <td>{{ project.maxMembers }}</td>
+          <td>{{ project.isActive ? 'Da' : 'Ne' }}</td>
+          <td>{{ project.createdAt | date }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="btn btn-primary" routerLink="create-project">Add Project</button>
+  </div>
+  
