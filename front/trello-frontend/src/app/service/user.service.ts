@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 
 export interface User {
   id: string;
@@ -16,11 +17,12 @@ export interface User {
 export class UserService {
   private apiUrl = 'http://localhost:8080/users'; 
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   // Metoda za dobijanje liste korisnika
-  getUsers(): Observable<User[]> {
-    return this.http.get<User[]>(this.apiUrl);
+  getUsers(): Observable<any> {
+    const headers = this.authService.getAuthHeaders();
+    return this.http.get<any>(this.apiUrl, { headers });
   }
   // Metoda za brisanje korisnika po ID-u
   deleteUser(userId: string): Observable<any> {

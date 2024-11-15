@@ -10,7 +10,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
   standalone: true,
   templateUrl: './project-list.component.html',
   styleUrls: ['./project-list.component.css'],
-  imports: [CommonModule,RouterLink,RouterOutlet]
+  imports: [CommonModule,RouterLink,RouterOutlet,]
 })
 export class ProjectListComponent implements OnInit {
   projects: Project[] = [];

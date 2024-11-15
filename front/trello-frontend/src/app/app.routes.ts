@@ -10,6 +10,7 @@ import { VerificationComponent } from './verification/verification.component';
 import { HomeComponentComponent } from './home-component/home-component.component';
 import { ProjectListComponent } from './project-list/project-list.component';
 import { UserListComponent } from './user-list/user-list.component';
+import { LoginComponent } from './login/login.component';
 
 export const appRoutes: Routes = [
   { path: 'project-list/create-project', component: CreateProjectComponent },
@@ -22,7 +23,8 @@ export const appRoutes: Routes = [
   { path: 'remove-member-from-task', component: RemoveMemberFromTaskComponent },
   { path: 'home-page', component: HomeComponentComponent},
   { path: 'project-list', component: ProjectListComponent},
-  { path: 'user-list', component: UserListComponent}
+  { path: 'user-list', component: UserListComponent},
+  { path: 'login', component: LoginComponent}
 
 ];
  
