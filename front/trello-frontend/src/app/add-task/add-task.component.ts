@@ -1,9 +1,10 @@
-// add-task.component.ts
 
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TaskService } from '../service/task.service';
 import { Task } from '../model/task.model';
+import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 
 
 @Component({
@@ -11,13 +12,13 @@ import { Task } from '../model/task.model';
   standalone: true,
   templateUrl: './add-task.component.html',
   styleUrls: ['./add-task.component.css'],
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule,CommonModule,FormsModule],
   providers: [TaskService]
 })
 export class AddTaskComponent implements OnInit {
   taskForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private taskService: TaskService) {
+  constructor(private fb: FormBuilder, http: HttpClient, private taskService: TaskService) {
     this.taskForm = this.fb.group({
       title: ['', Validators.required],
       description: ['', Validators.required],

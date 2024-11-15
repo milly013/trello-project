@@ -1,6 +1,6 @@
 module github.com/milly013/trello-project/back/user-service
 
-go 1.22.2
+go 1.20
 
 require (
 	github.com/gin-gonic/gin v1.10.0
@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/felixge/httpsnoop v1.0.3 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )
 

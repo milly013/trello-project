@@ -32,6 +32,9 @@ func (s *TaskService) GetAllTasks(ctx context.Context) ([]model.Task, error) {
 func (s *TaskService) AddMemberToTask(ctx context.Context, taskID, userID primitive.ObjectID) error {
 	return s.taskRepo.AddUserToTask(ctx, taskID, userID)
 }
+func (s *TaskService) RemoveMemberFromTask(ctx context.Context, taskID, userID primitive.ObjectID) error {
+	return s.taskRepo.RemoveUserFromTask(ctx, taskID, userID)
+}
 
 func (s *TaskService) GetTaskById(ctx context.Context, taskId string) (*model.Task, error) {
 	return s.taskRepo.GetTaskById(ctx, taskId)

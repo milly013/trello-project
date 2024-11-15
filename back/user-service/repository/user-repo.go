@@ -6,6 +6,7 @@ import (
 
 	"github.com/milly013/trello-project/back/user-service/model"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -68,6 +69,17 @@ func (r *UserRepository) CreateUser(ctx context.Context, user model.User) error 
 	return err
 }
 
+// Brisanje korisnika po ID-u
+func (r *UserRepository) DeleteUserByID(ctx context.Context, id string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objectID}
+	_, err = r.collection.DeleteOne(ctx, filter)
+	return err
+}
+
 // Preuzimanje korisnika po ID-u
 func (r *UserRepository) GetUserByID(ctx context.Context, id string, user *model.User) error {
 	filter := bson.M{"_id": id}
@@ -87,8 +99,6 @@ func (r *UserRepository) GetAllUsers(ctx context.Context) ([]model.User, error) 
 	}
 	return users, nil
 }
-
-
 
 func (r *UserRepository) VerifyUserAndActivate(ctx context.Context, email, code string) (bool, error) {
 	// Filtriraj korisnika prema email-u i verifikacionom kodu

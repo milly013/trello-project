@@ -1,4 +1,3 @@
-// main.go
 package main
 
 import (
@@ -6,76 +5,86 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/handlers"
+	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
 	"github.com/milly013/trello-project/back/project-service/handler"
 	"github.com/milly013/trello-project/back/project-service/repository"
 	"github.com/milly013/trello-project/back/project-service/service"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+var projectCollection *mongo.Collection
+
 func main() {
+	// Učitajte .env fajl
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	// Povezivanje na MongoDB
 	client, err := connectToMongoDB()
 	if err != nil {
 		log.Fatal("Error connecting to MongoDB:", err)
 	}
 	defer client.Disconnect(context.TODO())
-	db := client.Database("mydatabase")
 
-	// Inicijalizacija repozitorijuma, servisa i handlera
+	// Kreiramo instancu baze podataka
+	db := client.Database("mydatabase")
+	projectCollection = db.Collection("projects")
+
+	// Kreirajte repozitorijum
 	projectRepo := repository.NewProjectRepository(db)
 	projectService := service.NewProjectService(projectRepo)
 	projectHandler := handler.NewProjectHandler(projectService)
 
-	// Kreiranje Gin routera
 	router := gin.Default()
-
-	// CORS konfiguracija
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:4200"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
 
 	// Definisanje ruta
 	router.POST("/projects", projectHandler.CreateProject)
 	router.GET("/projects", projectHandler.GetProjects)
 	router.POST("/projects/:projectId/members", projectHandler.AddMemberToProject)
 	router.DELETE("/projects/:projectId/members", projectHandler.RemoveMemberFromProject)
-	//router.FETCH("/projects/:projectId/members")
 
-	// Pokretanje servera
-	//router.Run(":8081")
-
+	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Set the correct origin
+		handlers.AllowedOrigins([]string{os.Getenv("CORS_ALLOWED_ORIGINS")}),
 		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
 	)
 
-	srv := &http.Server{
-
-		Handler: corsHandler(router),
-		Addr:    ":8081",
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8081" // Default port
 	}
 
-	log.Println("Server is running on port 8081")
+	srv := &http.Server{
+		Handler: corsHandler(router),
+		Addr:    ":" + port,
+	}
+
+	log.Println("Server is running on port " + port)
 	log.Fatal(srv.ListenAndServe())
 }
 
+// Funkcija za povezivanje na MongoDB
 func connectToMongoDB() (*mongo.Client, error) {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	mongoURI := os.Getenv("MONGODB_URI")
+	if mongoURI == "" {
+		log.Fatal("MONGO_URI environment variable not set")
+	}
+
+	clientOptions := options.Client().ApplyURI(mongoURI)
 	client, err := mongo.NewClient(clientOptions)
 	if err != nil {
 		return nil, err
 	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -91,5 +100,4 @@ func connectToMongoDB() (*mongo.Client, error) {
 
 	fmt.Println("Connected to MongoDB!")
 	return client, nil
-
 }

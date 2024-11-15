@@ -36,6 +36,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 
 // Handler za dobijanje svih zadataka
 func (h *TaskHandler) GetTasks(c *gin.Context) {
+
 	tasks, err := h.service.GetAllTasks(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -77,6 +78,40 @@ func (h *TaskHandler) AssignMemberToTask(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User added to task successfully"})
+}
+
+type RemoveUserRequest struct {
+	TaskID string `json:"taskId" binding:"required"`
+	UserID string `json:"userId" binding:"required"`
+}
+
+// Handler za uklanjanje korisnika sa zadatka
+func (h *TaskHandler) RemoveMemberFromTask(c *gin.Context) {
+	var req RemoveUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	taskID, err := primitive.ObjectIDFromHex(req.TaskID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
+		return
+	}
+
+	userID, err := primitive.ObjectIDFromHex(req.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	err = h.service.RemoveMemberFromTask(context.Background(), taskID, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove user from task"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User removed from task successfully"})
 }
 
 func (h *TaskHandler) GetTaskById(c *gin.Context) {

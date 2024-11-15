@@ -7,7 +7,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } 
   selector: 'app-add-user',
   standalone: true, // Oznaka za standalone komponentu
   templateUrl: './add-user.component.html',
-  imports: [ReactiveFormsModule,CommonModule,FormsModule] // Uvezi ReactiveFormsModule
+  imports: [ReactiveFormsModule,CommonModule,FormsModule] 
 })
 export class AddUserComponent {
   userProjectForm: FormGroup;

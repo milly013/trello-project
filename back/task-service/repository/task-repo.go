@@ -26,18 +26,21 @@ func (r *TaskRepository) GetAllTasks(ctx context.Context) ([]model.Task, error) 
 	var tasks []model.Task
 	cursor, err := r.collection.Find(ctx, bson.M{})
 	if err != nil {
-		return nil, err
+		return nil, err // Vraćamo grešku ako dođe do problema sa upitom
 	}
-	defer cursor.Close(ctx)
+	defer cursor.Close(ctx) // Zatvorite kursor kada završite
 
 	for cursor.Next(ctx) {
 		var task model.Task
-		if err := cursor.Decode(&task); err != nil {
-			return nil, err
+		if err := cursor.Decode(&task); err != nil { // Dekodirajte zadatak
+			return nil, err // Vraćamo grešku ako dekodiranje ne uspe
 		}
-		tasks = append(tasks, task)
+		tasks = append(tasks, task) // Dodajte zadatak u slice
 	}
-
+	// Proverite da li je bilo grešaka tokom iteracije
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
 	return tasks, cursor.Err()
 }
 
@@ -45,6 +48,15 @@ func (r *TaskRepository) AddUserToTask(ctx context.Context, taskID, userID primi
 	filter := bson.M{"_id": taskID}
 	update := bson.M{
 		"$addToSet": bson.M{"assignedTo": userID},
+	}
+
+	_, err := r.collection.UpdateOne(ctx, filter, update)
+	return err
+}
+func (r *TaskRepository) RemoveUserFromTask(ctx context.Context, taskID, userID primitive.ObjectID) error {
+	filter := bson.M{"_id": taskID}
+	update := bson.M{
+		"$pull": bson.M{"assignedTo": userID},
 	}
 
 	_, err := r.collection.UpdateOne(ctx, filter, update)

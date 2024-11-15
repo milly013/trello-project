@@ -3,17 +3,18 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface User {
-  id: string; // ili number, zavisno od vašeg modela
+  id: string;
   username: string;
   email: string;
-  password: string; // Ako je potrebno
+  password: string; 
+  isActive: boolean;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8081'; // URL vašeg API-a
+  private apiUrl = 'http://localhost:8080/users'; 
 
   constructor(private http: HttpClient) {}
 
@@ -21,6 +22,11 @@ export class UserService {
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>(this.apiUrl);
   }
+  // Metoda za brisanje korisnika po ID-u
+  deleteUser(userId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${userId}`);
+  }
+
 
   // Metoda za dodavanje novog korisnika u projekat
   addUserToProject(projectId: string, userId: string): Observable<any> {
@@ -77,4 +83,19 @@ export class UserService {
 
     return this.http.post<any>(`${this.apiUrl}/users/verify`, body, { headers });
   }
+
+  addMemberToTask(taskId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/tasks/${taskId}/members`;
+    const body = { userId: userId };
+    return this.http.post<any>(url, body, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    });
+  }
+
+
+  removeUserFromTask(taskId: string, userId: string): Observable<any> {
+    const url = `${this.apiUrl}/tasks/${taskId}/members/${userId}`;
+    return this.http.delete(url);
+  }
+
 }
