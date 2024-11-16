@@ -48,6 +48,7 @@ func main() {
 	// Definisanje ruta
 	router.POST("/projects", projectHandler.CreateProject)
 	router.GET("/projects", projectHandler.GetProjects)
+	router.GET("/projects/:id", projectHandler.GetProjectByID)
 	router.POST("/projects/:projectId/members", projectHandler.AddMemberToProject)
 	router.DELETE("/projects/:projectId/members", projectHandler.RemoveMemberFromProject)
 

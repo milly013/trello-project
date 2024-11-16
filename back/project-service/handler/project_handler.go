@@ -11,6 +11,7 @@ import (
 	"github.com/milly013/trello-project/back/project-service/model"
 	"github.com/milly013/trello-project/back/project-service/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ProjectHandler struct {
@@ -47,6 +48,28 @@ func (h *ProjectHandler) GetProjects(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, projects)
+}
+func (h *ProjectHandler) GetProjectByID(c *gin.Context) {
+	projectId := c.Param("id")
+
+	// Proveri validnost ID-a
+	if _, err := primitive.ObjectIDFromHex(projectId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID format"})
+		return
+	}
+
+	// Dobavi projekat koristeći servisnu metodu
+	project, err := h.service.GetProjectById(context.Background(), projectId)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve project"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, project)
 }
 
 func (h *ProjectHandler) AddMemberToProject(c *gin.Context) {
