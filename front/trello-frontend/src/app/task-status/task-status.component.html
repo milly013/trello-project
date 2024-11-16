@@ -1,0 +1,24 @@
+<div class="container mt-5" style="margin-top: 110px !important">
+    <div class="card shadow-lg">
+        <div class="card-header text-white bg-primary">
+            <h2 class="mb-0">Task Status Update</h2>
+        </div>
+        <div class="card-body">
+            <form (ngSubmit)="updateTaskStatus()">
+                <div class="form-group">
+                    <label for="taskId">Task ID</label>
+                    <input type="text" class="form-control" id="taskId" [(ngModel)]="taskId" name="taskId" required>
+                </div>
+                <div class="form-group mt-3">
+                    <label for="newStatus">New Status</label>
+                    <select class="form-control" id="newStatus" [(ngModel)]="newStatus" name="newStatus" required>
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-4">Update Status</button>
+            </form>
+        </div>
+    </div>
+</div>
