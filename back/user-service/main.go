@@ -4,20 +4,30 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/milly013/trello-project/back/user-service/handler"
-	"github.com/milly013/trello-project/back/user-service/repository"
-
+	"github.com/gorilla/handlers"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/milly013/trello-project/back/user-service/handler"
+	"github.com/milly013/trello-project/back/user-service/middleware"
+	"github.com/milly013/trello-project/back/user-service/repository"
+	"github.com/milly013/trello-project/back/user-service/service"
 )
 
-var projectCollection *mongo.Collection
+var userCollection *mongo.Collection
 
 func main() {
+	// Ucitavanje .env fajla
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	// Povezivanje na MongoDB
 	client, err := connectToMongoDB()
 	if err != nil {
@@ -25,37 +35,68 @@ func main() {
 	}
 	defer client.Disconnect(context.TODO())
 
-	// Referenca na kolekciju
-	projectCollection = client.Database("mydatabase").Collection("users")
+	db := client.Database("mydatabase")
+	userCollection = db.Collection("users")
 
-	// Kreirajte repozitorijum
-	userRepo := repository.NewUserRepository(client, "mydatabase")
-
-	// Kreirajte UserHandler
-	userHandler := handler.NewUserHandler(userRepo)
+	userRepo := repository.NewUserRepository(db)
+	jwtService := service.NewJWTService()
+	userHandler := handler.NewUserHandler(userRepo, jwtService)
 
 	router := gin.Default()
 
-	// API rute za korisnike
+	// API rute za korisnike bez autentifikacije (npr. registracija i verifikacija)
 	router.POST("/users", userHandler.CreateUser)
 	router.GET("/users", userHandler.GetUsers)
-	router.GET("/users/:id", userHandler.GetUserByID) // Dodana ruta za preuzimanje korisnika po ID-u
+	router.POST("/verify/:email/:code", userHandler.VerifyUser)
+	router.POST("/login", userHandler.Login)
+	router.DELETE("/users/:id", userHandler.DeleteUserByID)
 
-	router.Run(":8080")
+	// Middleware za zaštitu ruta
+	authMiddleware := middleware.JWTAuth(jwtService)
+
+	// Zaštićene rute
+	authRoutes := router.Group("/")
+	authRoutes.Use(authMiddleware)
+	{
+
+		authRoutes.GET("/users/:id", userHandler.GetUserByID)
+
+	}
+	// Konfiguracija CORS-a
+	corsHandler := handlers.CORS(
+		handlers.AllowedOrigins([]string{os.Getenv("CORS_ALLOWED_ORIGINS")}),
+		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+	)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Default port
+	}
+
+	srv := &http.Server{
+		Handler: corsHandler(router),
+		Addr:    ":" + port,
+	}
+
+	log.Println("Server is running on port " + port)
+	log.Fatal(srv.ListenAndServe())
 }
 
 // Funkcija za povezivanje na MongoDB
 func connectToMongoDB() (*mongo.Client, error) {
-	// Opcije konekcije
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	mongoURI := os.Getenv("MONGODB_URI")
+	if mongoURI == "" {
+		log.Fatal("MONGO_URI environment variable not set")
+	}
 
-	// Kreiramo novi MongoDB klijent
+	clientOptions := options.Client().ApplyURI(mongoURI)
+
 	client, err := mongo.NewClient(clientOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	// Povezujemo se na MongoDB server
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -64,7 +105,6 @@ func connectToMongoDB() (*mongo.Client, error) {
 		return nil, err
 	}
 
-	// Testiramo konekciju
 	err = client.Ping(ctx, nil)
 	if err != nil {
 		return nil, err

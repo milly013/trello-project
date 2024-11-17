@@ -1,7 +1,9 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
+import { appRoutes } from './app/app.routes';
+import { provideRouter } from '@angular/router';
+import { appConfig } from './app/app.config';
 
 // Konfiguriši aplikaciju sa provideHttpClient()
 bootstrapApplication(AppComponent, {

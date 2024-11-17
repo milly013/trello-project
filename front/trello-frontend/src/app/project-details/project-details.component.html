@@ -1,0 +1,9 @@
+<div class="container mt-4" *ngIf="project">
+    <h2>Detalji Projekta: {{ project.name }}</h2>
+    <p><strong>Datum završetka:</strong> {{ project.endDate | date }}</p>
+    <p><strong>Minimalno članova:</strong> {{ project.minMembers }}</p>
+    <p><strong>Maksimalno članova:</strong> {{ project.maxMembers }}</p>
+    <p><strong>Aktivan:</strong> {{ project.isActive ? 'Da' : 'Ne' }}</p>
+    <p><strong>Datum kreiranja:</strong> {{ project.createdAt | date }}</p>
+  </div>
+  
