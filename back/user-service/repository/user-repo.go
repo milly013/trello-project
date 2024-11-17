@@ -33,7 +33,9 @@ func (r *UserRepository) CheckUserExists(ctx context.Context, username, email st
 // Čuvanje verifikacionog koda za korisnika
 func (r *UserRepository) SaveVerificationCode(ctx context.Context, user model.User, code string) error {
 	verificationData := bson.M{
+		"username":         user.Username,
 		"email":            user.Email,
+		"password":         user.Password,
 		"verificationCode": code,
 		"createdAt":        time.Now(),
 	}

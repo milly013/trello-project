@@ -11,17 +11,22 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
+	"github.com/milly013/trello-project/back/user-service/service"
+	"golang.org/x/crypto/bcrypt"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserHandler struct {
-	repo *repository.UserRepository
+	repo       *repository.UserRepository
+	jwtService *service.JWTService
 }
 
 // Kreiraj novi UserHandler
-func NewUserHandler(repo *repository.UserRepository) *UserHandler {
-	return &UserHandler{repo: repo}
+func NewUserHandler(repo *repository.UserRepository, jwtService *service.JWTService) *UserHandler {
+	return &UserHandler{
+		repo:       repo,
+		jwtService: jwtService}
 }
 
 // Funkcija za generisanje slučajnog verifikacionog koda
@@ -72,6 +77,14 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send verification code"})
 		return
 	}
+
+	// Heširanje lozinke
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+	user.Password = string(hashedPassword)
 
 	// Čuvanje verifikacionog koda
 	h.repo.SaveVerificationCode(c, user, verificationCode)
@@ -175,4 +188,40 @@ func (h *UserHandler) VerifyUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User successfully verified and activated"})
+}
+
+func (h *UserHandler) Login(c *gin.Context) {
+	var req struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	// Decode JSON iz zahteva
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	var user model.User
+	err := h.repo.GetUserByEmail(c.Request.Context(), req.Email, &user)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Provera lozinke
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	// Generiši JWT token
+	token, err := h.jwtService.GenerateJWT(user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }

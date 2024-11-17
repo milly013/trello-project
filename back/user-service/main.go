@@ -15,13 +15,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/milly013/trello-project/back/user-service/handler"
+	"github.com/milly013/trello-project/back/user-service/middleware"
 	"github.com/milly013/trello-project/back/user-service/repository"
+	"github.com/milly013/trello-project/back/user-service/service"
 )
 
 var userCollection *mongo.Collection
 
 func main() {
-	// Učitajte .env fajl
+	// Ucitavanje .env fajla
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -37,18 +39,29 @@ func main() {
 	userCollection = db.Collection("users")
 
 	userRepo := repository.NewUserRepository(db)
-	// userService := service.NewUserService(userRepo)
-	userHandler := handler.NewUserHandler(userRepo)
+	jwtService := service.NewJWTService()
+	userHandler := handler.NewUserHandler(userRepo, jwtService)
 
 	router := gin.Default()
 
-	// API rute za korisnike
+	// API rute za korisnike bez autentifikacije (npr. registracija i verifikacija)
 	router.POST("/users", userHandler.CreateUser)
 	router.GET("/users", userHandler.GetUsers)
-	router.GET("/users/:id", userHandler.GetUserByID)
 	router.POST("/verify/:email/:code", userHandler.VerifyUser)
+	router.POST("/login", userHandler.Login)
 	router.DELETE("/users/:id", userHandler.DeleteUserByID)
 
+	// Middleware za zaštitu ruta
+	authMiddleware := middleware.JWTAuth(jwtService)
+
+	// Zaštićene rute
+	authRoutes := router.Group("/")
+	authRoutes.Use(authMiddleware)
+	{
+
+		authRoutes.GET("/users/:id", userHandler.GetUserByID)
+
+	}
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{os.Getenv("CORS_ALLOWED_ORIGINS")}),

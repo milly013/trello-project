@@ -10,21 +10,31 @@ import { VerificationComponent } from './verification/verification.component';
 import { HomeComponentComponent } from './home-component/home-component.component';
 import { ProjectListComponent } from './project-list/project-list.component';
 import { UserListComponent } from './user-list/user-list.component';
+
 import { TaskStatusComponent } from './task-status/task-status.component';
+
+import { LoginComponent } from './login/login.component';
+import { ProjectDetailsComponent } from './project-details/project-details.component';
+
 
 export const appRoutes: Routes = [
   { path: 'project-list/create-project', component: CreateProjectComponent },
   { path: 'add-task',component: AddTaskComponent},
   { path:'add-user',component:AddUserComponent},
   { path:'remove-user'  ,component:RemoveUserComponent},
-  { path:'registration',component:RegistrationComponent},
+  { path:'home-page/registration',component:RegistrationComponent},
   { path:'verification',component:VerificationComponent},
   { path:'add-member-to-task',component:AddMemberToTaskComponent},
   { path: 'remove-member-from-task', component: RemoveMemberFromTaskComponent },
   { path: 'home-page', component: HomeComponentComponent},
   { path: 'project-list', component: ProjectListComponent},
   { path: 'user-list', component: UserListComponent},
-  { path: 'task-status',component:TaskStatusComponent}
+
+  { path: 'task-status',component:TaskStatusComponent},
+
+  { path: 'home-page/login', component: LoginComponent},
+  { path: 'project-details/:id', component: ProjectDetailsComponent },
+
 
 ];
  
