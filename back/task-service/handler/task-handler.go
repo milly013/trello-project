@@ -195,9 +195,9 @@ func (h *TaskHandler) UpdateTaskStatusHandler(c *gin.Context) {
 // isValidStatusTransition - validira prelazak iz jednog statusa u drugi
 func isValidStatusTransition(currentStatus, newStatus string) bool {
 	validTransitions := map[string][]string{
-		"pending":     {"in_progress"},
-		"in_progress": {"completed", "pending"},
-		"completed":   {"in_progress"},
+		"Pending":     {"in_progress", "Completed"},
+		"in_progress": {"Completed", "Pending"},
+		"Completed":   {"in_progress"},
 	}
 
 	for _, status := range validTransitions[currentStatus] {
