@@ -20,15 +20,31 @@ export class CreateProjectComponent implements OnInit {
       expected_end_date: ['', Validators.required],
       min_members: [1, [Validators.required, Validators.min(1)]],
       max_members: [5, [Validators.required, Validators.min(1)]],
-      manager_id: ['', Validators.required]
-    });
+    });    
   }
 
   ngOnInit(): void {}
 
   addProject(): void {
     if (this.projectForm.valid) {
-      this.projectService.createProject(this.projectForm.value).subscribe({
+      // Uzmi managerId iz localStorage-a
+      const managerId = localStorage.getItem('managerId');
+      if (!managerId) {
+        console.error('Manager ID is not available in local storage');
+        return;
+      }
+  
+      // Pripremanje podataka za projekat, uključujući managerId
+      const projectData = {
+        ...this.projectForm.value,
+        endDate: new Date(this.projectForm.value.expected_end_date).toISOString(),
+        minMembers: this.projectForm.value.min_members,
+        maxMembers: this.projectForm.value.max_members,
+        managerId: managerId
+      };
+      
+      // Poziv servisa za kreiranje projekta
+      this.projectService.createProject(projectData).subscribe({
         next: (response) => {
           console.log('Project added successfully', response);
           this.projectForm.reset();
@@ -42,4 +58,5 @@ export class CreateProjectComponent implements OnInit {
       });
     }
   }
+  
 }

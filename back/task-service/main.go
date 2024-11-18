@@ -43,8 +43,8 @@ func main() {
 	taskHandler := handler.NewTaskHandler(taskService)
 
 	router := gin.Default()
-
 	// API rute za zadatke
+
 	router.POST("/tasks", taskHandler.CreateTask)
 	router.GET("/tasks", taskHandler.GetTasks)
 	router.PUT("/tasks/:id", taskHandler.UpdateTask)

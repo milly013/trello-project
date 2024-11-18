@@ -1,10 +1,12 @@
 
+
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TaskService } from '../service/task.service';
 import { Task } from '../model/task.model';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+
 
 
 @Component({
@@ -50,4 +52,5 @@ export class AddTaskComponent implements OnInit {
       });
     }
   }
+
 }

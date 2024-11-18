@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 import { CreateProjectComponent } from './create-project-component/create-project-component.component';
 import { AddTaskComponent } from './add-task/add-task.component';
 import { AddUserComponent } from './add-user/add-user.component';
@@ -31,6 +31,7 @@ export const appRoutes: Routes = [
   { path: 'task-status',component:TaskStatusComponent},
   { path: 'home-page/login', component: LoginComponent},
   { path: 'project-details/:id', component: ProjectDetailsComponent },
+
 
 ];
  

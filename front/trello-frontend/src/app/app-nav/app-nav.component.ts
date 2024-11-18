@@ -1,8 +1,10 @@
+
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { AuthService } from '../service/auth.service';
 import { HttpClient } from '@angular/common/http';
+
 
 
 @Component({
@@ -22,7 +24,7 @@ export class AppNavComponent {
 
     const token = localStorage.getItem('authToken');
     if (!token) {
-      this.router.navigate(['/login']);
+      this.router.navigate(['home-page/login']);
     }
   }
 

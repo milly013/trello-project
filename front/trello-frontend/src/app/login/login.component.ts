@@ -43,6 +43,7 @@ export class LoginComponent {
         // Čuvanje JWT tokena u local storage
         console.log("Login successful, saving token");
         localStorage.setItem('authToken', response.token);
+        localStorage.setItem('managerId', response.userId);
         this.router.navigate(['home-page']);
       },
       error: (error) => {

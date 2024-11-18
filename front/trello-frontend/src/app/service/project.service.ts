@@ -12,14 +12,13 @@ export interface Project {
   isActive: boolean;
   createdAt: Date;
   memberIds: string[];
-  taskIds: string[];
+  taskIds: string[];  
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
-
   private apiUrl = 'http://localhost:8081'; 
   
   constructor(private http: HttpClient) { }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/milly013/trello-project/back/task-service/model"
 	"go.mongodb.org/mongo-driver/bson"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -88,6 +89,7 @@ func (r *TaskRepository) UpdateTask(ctx context.Context, task *model.Task) error
 
 	_, err := r.collection.UpdateOne(ctx, filter, update)
 	return err
+
 }
 
 func (r *TaskRepository) GetTaskDependencies(ctx context.Context, taskID string) ([]model.Task, error) {
