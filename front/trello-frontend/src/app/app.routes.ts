@@ -12,6 +12,8 @@ import { ProjectListComponent } from './project-list/project-list.component';
 import { UserListComponent } from './user-list/user-list.component';
 import { LoginComponent } from './login/login.component';
 import { ProjectDetailsComponent } from './project-details/project-details.component';
+import { TaskStatusComponent } from './task-status/task-status.component';
+
 
 export const appRoutes: Routes = [
   { path: 'project-list/create-project', component: CreateProjectComponent },
@@ -27,6 +29,8 @@ export const appRoutes: Routes = [
   { path: 'user-list', component: UserListComponent},
   { path: 'home-page/login', component: LoginComponent},
   { path: 'project-details/:id', component: ProjectDetailsComponent },
+  { path: 'task-status',component:TaskStatusComponent}
+
 
 
 ];

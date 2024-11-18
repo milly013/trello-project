@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 
 interface LoginResponse {
   token: string;
+  userId: string;
 }
 
 @Injectable({

@@ -12,7 +12,7 @@ export interface Project {
   isActive: boolean;
   createdAt: Date;
   memberIds: string[];
-  taskIds: string[];
+  taskIds: string[];  
 }
 
 @Injectable({
