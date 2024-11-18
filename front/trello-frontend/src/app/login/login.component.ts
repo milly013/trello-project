@@ -44,6 +44,7 @@ export class LoginComponent {
         console.log("Login successful, saving token");
         localStorage.setItem('authToken', response.token);
         localStorage.setItem('managerId', response.userId);
+        localStorage.setItem('userRole', response.userRole)
         this.router.navigate(['home-page']);
       },
       error: (error) => {

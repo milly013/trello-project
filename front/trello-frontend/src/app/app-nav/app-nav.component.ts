@@ -21,6 +21,8 @@ export class AppNavComponent {
 
   onLogout() {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('managerId');
+    localStorage.removeItem('userRole');
 
     const token = localStorage.getItem('authToken');
     if (!token) {

@@ -86,6 +86,11 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 	user.Password = string(hashedPassword)
 
+	// Default role is "member" if not provided
+	if user.Role == "" {
+		user.Role = "member"
+	}
+
 	// Čuvanje verifikacionog koda
 	h.repo.SaveVerificationCode(c, user, verificationCode)
 
@@ -224,7 +229,8 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"token":  token,
-		"userId": user.ID.Hex(),
+		"token":    token,
+		"userId":   user.ID.Hex(),
+		"userRole": user.Role,
 	})
 }

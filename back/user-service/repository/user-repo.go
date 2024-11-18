@@ -37,6 +37,7 @@ func (r *UserRepository) SaveVerificationCode(ctx context.Context, user model.Us
 		"email":            user.Email,
 		"password":         user.Password,
 		"verificationCode": code,
+		"role":             user.Role,
 		"createdAt":        time.Now(),
 	}
 	_, err := r.collection.InsertOne(ctx, verificationData)
@@ -84,8 +85,12 @@ func (r *UserRepository) DeleteUserByID(ctx context.Context, id string) error {
 
 // Preuzimanje korisnika po ID-u
 func (r *UserRepository) GetUserByID(ctx context.Context, id string, user *model.User) error {
-	filter := bson.M{"_id": id}
-	err := r.collection.FindOne(ctx, filter).Decode(user)
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objectID}
+	err = r.collection.FindOne(ctx, filter).Decode(user)
 	return err
 }
 

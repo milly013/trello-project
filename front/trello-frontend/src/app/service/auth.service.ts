@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 interface LoginResponse {
   token: string;
   userId: string;
+  userRole: string;
 }
 
 @Injectable({
@@ -28,6 +29,7 @@ export class AuthService {
   // Funkcija za odjavljivanje korisnika
   logout(): void {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('managerId')
   }
   // Funkcija za dobijanje headera sa tokenom
   getAuthHeaders(): HttpHeaders {

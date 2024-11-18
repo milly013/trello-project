@@ -18,7 +18,8 @@ export class RegistrationComponent {
     this.registrationForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      isManager: [false]
     });
   }
 
@@ -30,8 +31,15 @@ export class RegistrationComponent {
 
     const formData = this.registrationForm.value;
 
+    const user = {
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+      role: formData.isManager ? 'manager' : 'member'
+    };
+
     // Pošaljemo HTTP POST zahtev na /users
-    this.http.post('http://localhost:8080/users', formData)
+    this.http.post('http://localhost:8080/users', user)
       .subscribe({
         next: (response) => {
           console.log('Korisnik je uspešno registrovan', response);
