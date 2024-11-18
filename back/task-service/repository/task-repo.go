@@ -70,7 +70,8 @@ func (r *TaskRepository) GetTaskById(ctx context.Context, taskId string) (*model
 		return nil, err
 	}
 
-	err = r.collection.FindOne(ctx, bson.M{"id": objID}).Decode(&task)
+	// Promeni "id" u "_id" za ispravno traženje
+	err = r.collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&task)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -82,10 +83,36 @@ func (r *TaskRepository) GetTaskById(ctx context.Context, taskId string) (*model
 }
 
 func (r *TaskRepository) UpdateTask(ctx context.Context, task *model.Task) error {
-	_, err := r.collection.UpdateOne(
-		ctx,
-		bson.M{"_id": task.ID},
-		bson.M{"$set": task},
-	)
+	filter := bson.M{"_id": task.ID}
+	update := bson.M{"$set": bson.M{"status": task.Status}}
+
+	_, err := r.collection.UpdateOne(ctx, filter, update)
 	return err
+}
+
+func (r *TaskRepository) GetTaskDependencies(ctx context.Context, taskID string) ([]model.Task, error) {
+	var dependencies []model.Task
+
+	// Prvo dobijamo kursor i proveravamo da li je došlo do greške
+	cur, err := r.collection.Find(ctx, bson.M{"dependencies": taskID})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	// Iteriramo kroz rezultate i dekodiramo ih
+	for cur.Next(ctx) {
+		var task model.Task
+		if err := cur.Decode(&task); err != nil {
+			return nil, err
+		}
+		dependencies = append(dependencies, task)
+	}
+
+	// Proveravamo da li je došlo do greške tokom iteracije
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return dependencies, nil
 }

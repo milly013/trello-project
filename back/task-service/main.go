@@ -14,6 +14,7 @@ import (
 	"github.com/milly013/trello-project/back/task-service/handler"
 	"github.com/milly013/trello-project/back/task-service/repository"
 	"github.com/milly013/trello-project/back/task-service/service"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -51,10 +52,13 @@ func main() {
 	router.POST("/tasks/add-member", taskHandler.AssignMemberToTask)
 	router.DELETE("/tasks/remove-member", taskHandler.RemoveMemberFromTask)
 
+	// Novi endpoint za promenu statusa zadatka
+	router.PUT("/tasks/:id/status", taskHandler.UpdateTaskStatus)
+
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{os.Getenv("CORS_ALLOWED_ORIGINS")}),
-		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
 	)
 
@@ -73,7 +77,6 @@ func main() {
 }
 
 func connectToMongoDB() (*mongo.Client, error) {
-
 	mongoURI := os.Getenv("MONGODB_URI")
 	if mongoURI == "" {
 		log.Fatal("MONGO_URI environment variable not set")
@@ -95,7 +98,6 @@ func connectToMongoDB() (*mongo.Client, error) {
 
 	err = client.Ping(ctx, nil)
 	if err != nil {
-
 		return nil, err
 	}
 
