@@ -15,14 +15,14 @@ export interface User {
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8080/users'; 
+  private apiUrl = 'http://localhost:8000/api/user/users'; 
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
   // Metoda za dobijanje liste korisnika
   getUsers(): Observable<any> {
     const headers = this.authService.getAuthHeaders();
-    return this.http.get<any>(this.apiUrl, { headers });
+    return this.http.get<any>(`${this.apiUrl}`, { headers });
   }
   // Metoda za brisanje korisnika po ID-u
   deleteUser(userId: string): Observable<any> {

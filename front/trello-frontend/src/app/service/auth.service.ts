@@ -13,7 +13,7 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080'; 
+  private apiUrl = 'http://localhost:8000/api/user'; 
 
   constructor(private http: HttpClient) {}
 

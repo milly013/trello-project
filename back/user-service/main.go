@@ -23,7 +23,7 @@ import (
 var userCollection *mongo.Collection
 
 func main() {
-	// Ucitavanje .env fajla
+	// Učitavanje .env fajla
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -35,7 +35,8 @@ func main() {
 	}
 	defer client.Disconnect(context.TODO())
 
-	db := client.Database("mydatabase")
+	// Kreiramo instancu baze podataka koristeći MONGODB_DATABASE
+	db := client.Database(os.Getenv("MONGODB_DATABASE"))
 	userCollection = db.Collection("users")
 
 	userRepo := repository.NewUserRepository(db)
@@ -50,6 +51,7 @@ func main() {
 	router.POST("/verify/:email/:code", userHandler.VerifyUser)
 	router.POST("/login", userHandler.Login)
 	router.DELETE("/users/:id", userHandler.DeleteUserByID)
+	router.GET("/users/:id", userHandler.GetUserByID)
 
 	// Middleware za zaštitu ruta
 	authMiddleware := middleware.JWTAuth(jwtService)
@@ -59,9 +61,8 @@ func main() {
 	authRoutes.Use(authMiddleware)
 	{
 
-		authRoutes.GET("/users/:id", userHandler.GetUserByID)
-
 	}
+
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{os.Getenv("CORS_ALLOWED_ORIGINS")}),
@@ -86,8 +87,9 @@ func main() {
 // Funkcija za povezivanje na MongoDB
 func connectToMongoDB() (*mongo.Client, error) {
 	mongoURI := os.Getenv("MONGODB_URI")
-	if mongoURI == "" {
-		log.Fatal("MONGO_URI environment variable not set")
+	dbName := os.Getenv("MONGODB_DATABASE")
+	if mongoURI == "" || dbName == "" {
+		log.Fatal("MONGODB_URI or MONGODB_DATABASE environment variable not set")
 	}
 
 	clientOptions := options.Client().ApplyURI(mongoURI)
@@ -100,8 +102,8 @@ func connectToMongoDB() (*mongo.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err = client.Connect(ctx)
-	if err != nil {
+	// Povezivanje na MongoDB
+	if err := client.Connect(ctx); err != nil {
 		return nil, err
 	}
 
@@ -110,6 +112,6 @@ func connectToMongoDB() (*mongo.Client, error) {
 		return nil, err
 	}
 
-	fmt.Println("Connected to MongoDB!")
+	fmt.Printf("Connected to MongoDB database %s!\n", dbName)
 	return client, nil
 }
