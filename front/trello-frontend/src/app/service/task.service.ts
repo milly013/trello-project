@@ -25,5 +25,8 @@ export class TaskService {
   updateTaskStatus(taskId: string, newStatus: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/tasks/${taskId}/status`, { new_status: newStatus });
   }
+  getTasksByProjectId(projectId: string): Observable<Task[]> {
+    return this.http.get<Task[]>(`${this.apiUrl}/tasks/${projectId}/tasks`);
+  }
   
 }

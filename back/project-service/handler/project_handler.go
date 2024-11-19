@@ -71,6 +71,23 @@ func (h *ProjectHandler) GetProjectByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, project)
 }
+func (h *ProjectHandler) GetTaskIDsByProject(c *gin.Context) {
+	projectId := c.Param("id")
+
+	if _, err := primitive.ObjectIDFromHex(projectId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID format"})
+		return
+	}
+	TaskIDs, err := h.service.GetTaskIDsByProject(context.Background(), projectId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve task IDs"})
+		return
+	}
+	if TaskIDs == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No tasks found for this project"})
+	}
+	c.JSON(http.StatusOK, TaskIDs)
+}
 
 func (h *ProjectHandler) AddMemberToProject(c *gin.Context) {
 	projectId := c.Param("projectId")

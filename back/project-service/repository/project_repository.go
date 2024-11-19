@@ -70,3 +70,19 @@ func (repo *ProjectRepository) UpdateProject(ctx context.Context, project *model
 	)
 	return err
 }
+
+func (repo *ProjectRepository) GetTaskIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
+	var project model.Project
+	objID, err := primitive.ObjectIDFromHex(projectId)
+	if err != nil {
+		return nil, err
+	}
+	err = repo.collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&project)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil // Projekat nije pronađen
+		}
+		return nil, err
+	}
+	return project.TaskIDs, nil
+}

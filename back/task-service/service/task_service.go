@@ -1,16 +1,19 @@
 package service
 
 import (
+	"bytes"
 	"context"
-	
+	"encoding/json"
+	"fmt"
+	"net/http"
+
 	"github.com/milly013/trello-project/back/task-service/model"
 	"github.com/milly013/trello-project/back/task-service/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type TaskService struct {
-	taskRepo          *repository.TaskRepository
-	projectServiceURL string
+	taskRepo *repository.TaskRepository
 }
 
 func NewTaskService(taskRepo *repository.TaskRepository) *TaskService {
@@ -20,7 +23,53 @@ func NewTaskService(taskRepo *repository.TaskRepository) *TaskService {
 }
 
 func (s *TaskService) AddTask(ctx context.Context, task *model.Task) error {
-	return s.taskRepo.CreateTask(ctx, task)
+
+	if task.ID.IsZero() {
+		task.ID = primitive.NewObjectID()
+	}
+
+	// Create the task in the task repository
+	err := s.taskRepo.CreateTask(ctx, task)
+	if err != nil {
+		return err
+	}
+
+	// Make a request to the project service to add the task ID to the project
+	projectID := task.ProjectID
+	if err := s.addTaskToProject(ctx, projectID, task.ID); err != nil {
+		return fmt.Errorf("failed to add task to project: %w", err)
+	}
+
+	return nil
+}
+func (s *TaskService) addTaskToProject(ctx context.Context, projectID, taskID primitive.ObjectID) error {
+	url := fmt.Sprintf("http://api-gateway:8000/api/project/projects/%s/tasks", projectID.Hex())
+
+	requestBody, err := json.Marshal(map[string]string{
+		"taskId": taskID.Hex(),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to marshal request body: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(requestBody))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("failed to add task to project, received status code: %d", resp.StatusCode)
+	}
+
+	return nil
 }
 
 func (s *TaskService) GetAllTasks(ctx context.Context) ([]model.Task, error) {
@@ -41,6 +90,64 @@ func (s *TaskService) GetTaskById(ctx context.Context, taskId string) (*model.Ta
 
 func (s *TaskService) UpdateTask(ctx context.Context, task *model.Task) error {
 	return s.taskRepo.UpdateTask(ctx, task)
+}
+func (s *TaskService) GetTaskIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
+	url := fmt.Sprintf("http://api-gateway:8000/api/project/projects/%s/tasks", projectId)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get task IDs by project, received status code: %d", resp.StatusCode)
+	}
+
+	var taskIDStrings []string
+	if err := json.NewDecoder(resp.Body).Decode(&taskIDStrings); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	fmt.Println("Received task ID strings from project service:", taskIDStrings)
+
+	var taskIDs []primitive.ObjectID
+	for _, taskIDStr := range taskIDStrings {
+		fmt.Println("Attempting to convert Task ID:", taskIDStr)
+		taskID, err := primitive.ObjectIDFromHex(taskIDStr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert task ID from string: %w", err)
+		}
+		taskIDs = append(taskIDs, taskID)
+	}
+	return taskIDs, nil
+}
+
+func (s *TaskService) GetTasksByProject(ctx context.Context, projectId string) ([]model.Task, error) {
+	taskIDs, err := s.GetTaskIDsByProject(ctx, projectId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get task IDs from project-service: %w", err)
+	}
+
+	fmt.Println("Task IDs:", taskIDs)
+
+	tasks := []model.Task{}
+	for _, taskID := range taskIDs {
+		task, err := s.GetTaskById(ctx, taskID.Hex())
+		if err != nil {
+			return nil, fmt.Errorf("failed to get task by id %s: %w", taskID.Hex(), err)
+		}
+		if task != nil {
+			tasks = append(tasks, *task)
+		}
+	}
+	return tasks, nil
 }
 
 // Provera da li je korisnik dodeljen zadatku

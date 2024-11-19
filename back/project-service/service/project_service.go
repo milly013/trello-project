@@ -32,6 +32,9 @@ func (s *ProjectService) GetProjects(ctx context.Context) ([]model.Project, erro
 func (s *ProjectService) GetProjectById(ctx context.Context, projectId string) (*model.Project, error) {
 	return s.repo.GetProjectById(ctx, projectId)
 }
+func (s *ProjectService) GetTaskIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
+	return s.repo.GetTaskIDsByProject(ctx, projectId)
+}
 
 func (s *ProjectService) UserExists(ctx context.Context, memberId primitive.ObjectID) (bool, error) {
 	url := fmt.Sprintf("http://api-gateway:8000/api/user/users/%s", memberId.Hex())
@@ -101,28 +104,34 @@ func (s *ProjectService) TaskExists(ctx context.Context, taskId primitive.Object
 }
 
 func (s *ProjectService) AddTaskToProject(ctx context.Context, projectId string, taskId primitive.ObjectID) error {
-
-	exists, err := s.TaskExists(ctx, taskId)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("user does not exist")
-	}
-
+	log.Printf("Attempting to retrieve project with ID: %s", projectId)
 	project, err := s.repo.GetProjectById(ctx, projectId)
 	if err != nil {
+		log.Printf("Error retrieving project with ID %s: %v", projectId, err)
 		return err
 	}
 
+	log.Printf("Project retrieved successfully: %+v", project)
+
+	// Proveri da li task već postoji u projektu
 	for _, id := range project.TaskIDs {
 		if id == taskId {
-			return fmt.Errorf("tasks already exists in project")
+			log.Printf("Task with ID %s already exists in project %s", taskId.Hex(), projectId)
+			return fmt.Errorf("task already exists in project")
 		}
 	}
 
 	project.TaskIDs = append(project.TaskIDs, taskId)
-	return s.repo.UpdateProject(ctx, project)
+	log.Printf("Adding task ID %s to project %s", taskId.Hex(), projectId)
+
+	err = s.repo.UpdateProject(ctx, project)
+	if err != nil {
+		log.Printf("Error updating project with ID %s: %v", projectId, err)
+		return err
+	}
+
+	log.Printf("Project updated successfully with new task ID %s", taskId.Hex())
+	return nil
 }
 
 func (s *ProjectService) RemoveMemberFromProject(ctx context.Context, projectId string, memberId primitive.ObjectID) error {

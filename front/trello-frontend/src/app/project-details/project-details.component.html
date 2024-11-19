@@ -5,5 +5,6 @@
     <p><strong>Maksimalno članova:</strong> {{ project.maxMembers }}</p>
     <p><strong>Aktivan:</strong> {{ project.isActive ? 'Da' : 'Ne' }}</p>
     <p><strong>Datum kreiranja:</strong> {{ project.createdAt | date }}</p>
+    <button class="btn btn-info mt-3" [routerLink]="['/task-list', project.id]">Tasks</button>
   </div>
   

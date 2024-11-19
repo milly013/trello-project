@@ -48,10 +48,11 @@ func main() {
 	router.POST("/tasks", taskHandler.CreateTask)
 	router.GET("/tasks", taskHandler.GetTasks)
 	router.PUT("/tasks/:id", taskHandler.UpdateTask)
-	router.GET("/tasks/:id", taskHandler.GetTaskById)
+	router.GET("/task/:id", taskHandler.GetTaskById)
 	router.POST("/tasks/add-member", taskHandler.AssignMemberToTask)
 	router.DELETE("/tasks/remove-member", taskHandler.RemoveMemberFromTask)
 	router.PUT("/tasks/:id/status", taskHandler.UpdateTaskStatus)
+	router.GET("/tasks/:projectID/tasks", taskHandler.GetTasksByProject)
 
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(

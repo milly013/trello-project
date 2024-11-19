@@ -38,7 +38,6 @@ func main() {
 	db := client.Database(os.Getenv("MONGODB_DATABASE"))
 	projectCollection = db.Collection("projects")
 
-	// Kreirajte repozitorijum
 	projectRepo := repository.NewProjectRepository(db)
 	projectService := service.NewProjectService(projectRepo)
 	projectHandler := handler.NewProjectHandler(projectService)
@@ -51,6 +50,8 @@ func main() {
 	router.GET("/projects/:id", projectHandler.GetProjectByID)
 	router.POST("/projects/:projectId/members", projectHandler.AddMemberToProject)
 	router.DELETE("/projects/:projectId/members", projectHandler.RemoveMemberFromProject)
+	router.POST("/projects/:projectId/tasks", projectHandler.AddTaskToProject)
+	router.GET("/projects/:id/tasks", projectHandler.GetTaskIDsByProject)
 
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(
