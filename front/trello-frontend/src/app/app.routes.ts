@@ -13,6 +13,8 @@ import { UserListComponent } from './user-list/user-list.component';
 import { LoginComponent } from './login/login.component';
 import { ProjectDetailsComponent } from './project-details/project-details.component';
 import { TaskStatusComponent } from './task-status/task-status.component';
+import { TaskListComponent } from './task-list/task-list.component';
+import { TaskUsersComponent } from './task-users/task-users.component';
 
 export const appRoutes: Routes = [
   { path: 'project-list/create-project', component: CreateProjectComponent },
@@ -31,6 +33,8 @@ export const appRoutes: Routes = [
   { path: 'task-status',component:TaskStatusComponent},
   { path: 'home-page/login', component: LoginComponent},
   { path: 'project-details/:id', component: ProjectDetailsComponent },
+  { path: 'task-list/:projectId', component: TaskListComponent },
+  { path: 'task-users/:taskId', component: TaskUsersComponent },
 
 
 ];

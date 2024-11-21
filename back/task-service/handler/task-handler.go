@@ -45,7 +45,7 @@ func (h *TaskHandler) GetTasks(c *gin.Context) {
 	c.JSON(http.StatusOK, tasks)
 }
 func (h *TaskHandler) GetTasksByProject(c *gin.Context) {
-	projectId := c.Param("project")
+	projectId := c.Param("projectID")
 	tasks, err := h.service.GetTasksByProject(c, projectId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

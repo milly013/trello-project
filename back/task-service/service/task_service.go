@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/milly013/trello-project/back/task-service/model"
@@ -106,20 +107,31 @@ func (s *TaskService) GetTaskIDsByProject(ctx context.Context, projectId string)
 	}
 	defer resp.Body.Close()
 
+	// Proverite statusni kod
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get task IDs by project, received status code: %d", resp.StatusCode)
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to get task IDs by project, received status code: %d, response body: %s", resp.StatusCode, string(bodyBytes))
 	}
 
+	// Čitanje tela odgovora
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	fmt.Printf("Response body: %s\n", string(bodyBytes)) // Dodajte logovanje odgovora
+
+	// Dekodiranje odgovora
 	var taskIDStrings []string
-	if err := json.NewDecoder(resp.Body).Decode(&taskIDStrings); err != nil {
+	if err := json.Unmarshal(bodyBytes, &taskIDStrings); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	fmt.Println("Received task ID strings from project service:", taskIDStrings)
+	fmt.Println("Decoded task IDs:", taskIDStrings)
 
+	// Konvertovanje u `ObjectID`
 	var taskIDs []primitive.ObjectID
 	for _, taskIDStr := range taskIDStrings {
-		fmt.Println("Attempting to convert Task ID:", taskIDStr)
 		taskID, err := primitive.ObjectIDFromHex(taskIDStr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert task ID from string: %w", err)
@@ -135,9 +147,14 @@ func (s *TaskService) GetTasksByProject(ctx context.Context, projectId string) (
 		return nil, fmt.Errorf("failed to get task IDs from project-service: %w", err)
 	}
 
-	fmt.Println("Task IDs:", taskIDs)
+	if projectId == "" {
+		return nil, fmt.Errorf("projectId cannot be empty")
+	}
+
+	fmt.Println("Retrieved Task IDs:", taskIDs)
 
 	tasks := []model.Task{}
+
 	for _, taskID := range taskIDs {
 		task, err := s.GetTaskById(ctx, taskID.Hex())
 		if err != nil {
