@@ -5,6 +5,7 @@ import (
 
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserService struct {
@@ -68,4 +69,9 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]model.User, error) {
 // Verifikacija i aktivacija korisnika na osnovu emaila i koda
 func (s *UserService) VerifyUserAndActivate(ctx context.Context, email, code string) (bool, error) {
 	return s.repo.VerifyUserAndActivate(ctx, email, code)
+}
+
+// Preuzimanje korisnika prema listi ID-eva
+func (s *UserService) GetUsersByIds(ctx context.Context, ids []primitive.ObjectID) ([]model.User, error) {
+	return s.repo.GetUsersByIDs(ctx, ids)
 }

@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TaskService } from '../service/task.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-task-users',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './task-users.component.html',
   styleUrls: ['./task-users.component.css']
 })

@@ -14,19 +14,22 @@ import (
 	"github.com/milly013/trello-project/back/user-service/service"
 	"golang.org/x/crypto/bcrypt"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserHandler struct {
 	repo       *repository.UserRepository
 	jwtService *service.JWTService
+	service    *service.UserService
 }
 
 // Kreiraj novi UserHandler
-func NewUserHandler(repo *repository.UserRepository, jwtService *service.JWTService) *UserHandler {
+func NewUserHandler(repo *repository.UserRepository, jwtService *service.JWTService, service *service.UserService) *UserHandler {
 	return &UserHandler{
 		repo:       repo,
-		jwtService: jwtService}
+		jwtService: jwtService,
+		service:    service}
 }
 
 // Funkcija za generisanje slučajnog verifikacionog koda
@@ -171,6 +174,38 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 		return
 	}
 
+	c.JSON(http.StatusOK, users)
+}
+func (h *UserHandler) GetUsersByIds(c *gin.Context) {
+	var requestBody struct {
+		UserIds []string `json:"userIds"`
+	}
+
+	// Parsiraj JSON telo zahteva
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	// Pretvaranje ID-ova iz string formata u ObjectID
+	var userIDs []primitive.ObjectID
+	for _, id := range requestBody.UserIds {
+		objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+			return
+		}
+		userIDs = append(userIDs, objectID)
+	}
+
+	// Dobavljanje korisnika pomoću UserService-a
+	users, err := h.service.GetUsersByIds(c.Request.Context(), userIDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Vraćanje liste korisnika
 	c.JSON(http.StatusOK, users)
 }
 

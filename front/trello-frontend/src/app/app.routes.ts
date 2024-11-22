@@ -18,7 +18,7 @@ import { TaskUsersComponent } from './task-users/task-users.component';
 
 export const appRoutes: Routes = [
   { path: 'project-list/create-project', component: CreateProjectComponent },
-  { path: 'add-task',component: AddTaskComponent},
+  { path: 'add-task/:projectId',component: AddTaskComponent},
   { path:'add-user',component:AddUserComponent},
   { path:'remove-user'  ,component:RemoveUserComponent},
   { path:'home-page/registration',component:RegistrationComponent},

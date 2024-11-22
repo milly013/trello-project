@@ -26,4 +26,7 @@
     </tbody>
   </table>
   <p *ngIf="tasks.length === 0">Nema zadataka za ovaj projekat.</p>
+
+  <!-- Dugme za dodavanje novog zadatka -->
+  <button class="btn btn-success mt-3" [routerLink]="['/add-task', projectId]">Dodaj Zadatak</button>
 </div>
