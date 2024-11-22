@@ -2,6 +2,7 @@ module github.com/milly013/trello-project/back/task-service
 
 go 1.20
 
+
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/joho/godotenv v1.5.1
