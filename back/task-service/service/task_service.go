@@ -10,6 +10,7 @@ import (
 
 	"github.com/milly013/trello-project/back/task-service/model"
 	"github.com/milly013/trello-project/back/task-service/repository"
+	userModel "github.com/milly013/trello-project/back/user-service/model"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -203,65 +204,65 @@ func (s *TaskService) HasUnfinishedDependencies(ctx context.Context, taskID stri
 }
 
 // Funkcija koja dohvata sve korisnike dodeljene zadatku
-// func (s *TaskService) GetUsersByTaskId(ctx context.Context, taskId string) ([]*User, error) {
-// 	// Prvo dobavljamo zadatak po ID-u
-// 	task, err := s.GetTaskById(ctx, taskId)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to get task: %w", err)
-// 	}
+func (s *TaskService) GetUsersByTaskId(ctx context.Context, taskId string) ([]*userModel.User, error) {
+	// Prvo dobavljamo zadatak po ID-u
+	task, err := s.GetTaskById(ctx, taskId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get task: %w", err)
+	}
 
-// 	// Ako nema dodeljenih korisnika, vratimo prazan niz
-// 	if len(task.AssignedTo) == 0 {
-// 		return []*userModel.User{}, nil
-// 	}
+	// Ako nema dodeljenih korisnika, vratimo prazan niz
+	if len(task.AssignedTo) == 0 {
+		return []*userModel.User{}, nil
+	}
 
-// 	// Dobavljamo informacije o korisnicima iz `user-service`
-// 	users, err := s.getUsersByIDs(ctx, task.AssignedTo)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to get users: %w", err)
-// 	}
+	// Dobavljamo informacije o korisnicima iz `user-service`
+	users, err := s.getUsersByIDs(ctx, task.AssignedTo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users: %w", err)
+	}
 
-// 	return users, nil
-// }
+	return users, nil
+}
 
 // // Funkcija za dobijanje korisnika prema listi ID-ova iz `user-service`
-// func (s *TaskService) getUsersByIDs(ctx context.Context, userIDs []primitive.ObjectID) ([]*userModel.User, error) {
-// 	// Pretvaranje ID-ova u niz stringova
-// 	userIDStrings := make([]string, len(userIDs))
-// 	for i, id := range userIDs {
-// 		userIDStrings[i] = id.Hex()
-// 	}
+func (s *TaskService) getUsersByIDs(ctx context.Context, userIDs []primitive.ObjectID) ([]*userModel.User, error) {
+	// Pretvaranje ID-ova u niz stringova
+	userIDStrings := make([]string, len(userIDs))
+	for i, id := range userIDs {
+		userIDStrings[i] = id.Hex()
+	}
 
-// 	// Kreiramo URL za pozivanje `user-service`
-// 	url := "http://user-service:8080/api/users/getByIds"
-// 	requestBody, err := json.Marshal(map[string][]string{
-// 		"userIds": userIDStrings,
-// 	})
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
-// 	}
+	// Kreiramo URL za pozivanje `user-service`
+	url := fmt.Sprintf("http://api-gateway:8000/api/user/users/getByIds")
+	requestBody, err := json.Marshal(map[string][]string{
+		"userIds": userIDStrings,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
+	}
 
-// 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(requestBody))
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to create request: %w", err)
-// 	}
-// 	req.Header.Set("Content-Type", "application/json")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(requestBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
 
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to send request: %w", err)
-// 	}
-// 	defer resp.Body.Close()
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
 
-// 	if resp.StatusCode != http.StatusOK {
-// 		return nil, fmt.Errorf("failed to get users, status code: %d", resp.StatusCode)
-// 	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get users, status code: %d", resp.StatusCode)
+	}
 
-// 	var users []*userModel.User
-// 	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
-// 		return nil, fmt.Errorf("failed to decode response: %w", err)
-// 	}
+	var users []*userModel.User
+	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
 
-// 	return users, nil
-// }
+	return users, nil
+}

@@ -53,6 +53,7 @@ func main() {
 	router.DELETE("/tasks/remove-member", taskHandler.RemoveMemberFromTask)
 	router.PUT("/tasks/:id/status", taskHandler.UpdateTaskStatus)
 	router.GET("/tasks/:projectID/tasks", taskHandler.GetTasksByProject)
+	router.GET("/tasks/members/:taskId/users", taskHandler.GetUsersByTaskId)
 
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(

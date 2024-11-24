@@ -29,7 +29,7 @@ export class TaskService {
     return this.http.get<Task[]>(`${this.apiUrl}/tasks/${projectId}/tasks`);
   }
   getUsersByTaskId(taskId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/tasks/${taskId}/users`);
+    return this.http.get<any[]>(`${this.apiUrl}/tasks/members/${taskId}/users`);
   }
   
 }

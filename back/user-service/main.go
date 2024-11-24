@@ -53,7 +53,7 @@ func main() {
 	router.POST("/login", userHandler.Login)
 	router.DELETE("/users/:id", userHandler.DeleteUserByID)
 	router.GET("/users/:id", userHandler.GetUserByID)
-	router.POST("/api/users/getByIds", userHandler.GetUsersByIds)
+	router.POST("/users/getByIds", userHandler.GetUsersByIds)
 
 	// Middleware za zaštitu ruta
 	authMiddleware := middleware.JWTAuth(jwtService)
