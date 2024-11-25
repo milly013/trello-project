@@ -25,10 +25,10 @@
             <a class="nav-link" routerLink="user-list">Users</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" routerLink="home-page/login">Login</a>
+            <a class="nav-link" *ngIf="!isLoggedIn()" routerLink="home-page/login">Login</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" (click)="onLogout()">Logout</a>
+            <a class="nav-link" *ngIf="isLoggedIn()" (click)="onLogout()" style="cursor: pointer;">Logout</a>
 
           </li>
         </ul>

@@ -13,7 +13,7 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8000/api/user'; 
+  private apiUrl = 'http://localhost:8000/api/user/users'; 
 
   constructor(private http: HttpClient) {}
 
@@ -38,4 +38,21 @@ export class AuthService {
       'Authorization': `Bearer ${token}`
     });
   }
+   // Provera da li je korisnik menadžer
+   isUserManager(): boolean {
+    const role = localStorage.getItem('userRole');
+    return role === 'manager';
+  }
+
+  
+  // Provera da li je korisnik član
+  isUserMember(): boolean {
+    const role = localStorage.getItem('userRole');
+    return role === 'member';
+  }
+
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('token');
+  }
+  
 }

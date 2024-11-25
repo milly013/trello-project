@@ -269,3 +269,39 @@ func (h *UserHandler) Login(c *gin.Context) {
 		"userRole": user.Role,
 	})
 }
+
+// Handler metoda za proveru da li je korisnik menadžer
+func (h *UserHandler) CheckIfUserIsManager(c *gin.Context) {
+	userID := c.Param("userId")
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	isManager, err := h.service.IsUserManager(c.Request.Context(), objectID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"isManager": isManager})
+}
+
+// Handler metoda za proveru da li je korisnik član
+func (h *UserHandler) CheckIfUserIsMember(c *gin.Context) {
+	userID := c.Param("userId")
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	isMember, err := h.service.IsUserMember(c.Request.Context(), objectID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"isMember": isMember})
+}

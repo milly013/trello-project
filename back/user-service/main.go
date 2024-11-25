@@ -50,10 +50,12 @@ func main() {
 	router.POST("/users", userHandler.CreateUser)
 	router.GET("/users", userHandler.GetUsers)
 	router.POST("/verify/:email/:code", userHandler.VerifyUser)
-	router.POST("/login", userHandler.Login)
+	router.POST("/users/login", userHandler.Login)
 	router.DELETE("/users/:id", userHandler.DeleteUserByID)
 	router.GET("/users/:id", userHandler.GetUserByID)
 	router.POST("/users/getByIds", userHandler.GetUsersByIds)
+	router.GET("/users/isManager/:userId", userHandler.CheckIfUserIsManager)
+	router.GET("/users/isMember/:userId", userHandler.CheckIfUserIsMember)
 
 	// Middleware za zaštitu ruta
 	authMiddleware := middleware.JWTAuth(jwtService)
