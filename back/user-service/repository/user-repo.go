@@ -38,6 +38,7 @@ func (r *UserRepository) SaveVerificationCode(ctx context.Context, user model.Us
 		"email":            user.Email,
 		"password":         user.Password,
 		"verificationCode": code,
+		"role":             user.Role,
 		"createdAt":        time.Now(),
 	}
 	_, err := r.collection.InsertOne(ctx, verificationData)
@@ -154,4 +155,30 @@ func (r *UserRepository) UpdatePassword(ctx context.Context, userID, newPassword
     update := bson.M{"$set": bson.M{"password": newPassword}}
     _, err = r.collection.UpdateOne(ctx, filter, update)
     return err
+}
+
+// Preuzimanje korisnika prema listi ID-eva
+func (r *UserRepository) GetUsersByIDs(ctx context.Context, ids []primitive.ObjectID) ([]model.User, error) {
+	// Filtriraj korisnike prema ID-evima koristeći $in operator
+	filter := bson.M{"_id": bson.M{"$in": ids}}
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []model.User
+	for cursor.Next(ctx) {
+		var user model.User
+		if err := cursor.Decode(&user); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

@@ -44,6 +44,15 @@ func (h *TaskHandler) GetTasks(c *gin.Context) {
 
 	c.JSON(http.StatusOK, tasks)
 }
+func (h *TaskHandler) GetTasksByProject(c *gin.Context) {
+	projectId := c.Param("projectID")
+	tasks, err := h.service.GetTasksByProject(c, projectId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, tasks)
+}
 
 type AssignUserRequest struct {
 	TaskID string `json:"taskId" binding:"required"`
@@ -244,4 +253,21 @@ func (h *TaskHandler) UpdateTaskStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Task status updated successfully"})
+}
+
+// Handler metoda za dobijanje korisnika po ID-u zadatka
+func (h *TaskHandler) GetUsersByTaskId(c *gin.Context) {
+	taskId := c.Param("taskId")
+	if taskId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "taskId is required"})
+		return
+	}
+
+	users, err := h.service.GetUsersByTaskId(c.Request.Context(), taskId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
 }

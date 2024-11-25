@@ -5,6 +5,7 @@ import (
 
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -94,4 +95,24 @@ func (s *UserService) ChangePassword(ctx context.Context, userID, currentPasswor
 
 	// Ažuriraj korisnika sa novom lozinkom
 	return s.repo.UpdatePassword(ctx, userID, string(hashedPassword))
+}
+
+// Preuzimanje korisnika prema listi ID-eva
+func (s *UserService) GetUsersByIds(ctx context.Context, ids []primitive.ObjectID) ([]model.User, error) {
+	return s.repo.GetUsersByIDs(ctx, ids)
+}
+func (s *UserService) IsUserManager(ctx context.Context, userID primitive.ObjectID) (bool, error) {
+	user, err := s.GetUserByID(ctx, userID.Hex())
+	if err != nil {
+		return false, err
+	}
+	return user.Role == "manager", nil
+}
+
+func (s *UserService) IsUserMember(ctx context.Context, userID primitive.ObjectID) (bool, error) {
+	user, err := s.GetUserByID(ctx, userID.Hex())
+	if err != nil {
+		return false, err
+	}
+	return user.Role == "member", nil
 }

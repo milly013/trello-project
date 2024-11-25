@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 import { CreateProjectComponent } from './create-project-component/create-project-component.component';
 import { AddTaskComponent } from './add-task/add-task.component';
 import { AddUserComponent } from './add-user/add-user.component';
@@ -10,16 +10,15 @@ import { VerificationComponent } from './verification/verification.component';
 import { HomeComponentComponent } from './home-component/home-component.component';
 import { ProjectListComponent } from './project-list/project-list.component';
 import { UserListComponent } from './user-list/user-list.component';
-
-import { TaskStatusComponent } from './task-status/task-status.component';
-
 import { LoginComponent } from './login/login.component';
 import { ProjectDetailsComponent } from './project-details/project-details.component';
-
+import { TaskStatusComponent } from './task-status/task-status.component';
+import { TaskListComponent } from './task-list/task-list.component';
+import { TaskUsersComponent } from './task-users/task-users.component';
 
 export const appRoutes: Routes = [
   { path: 'project-list/create-project', component: CreateProjectComponent },
-  { path: 'add-task',component: AddTaskComponent},
+  { path: 'add-task/:projectId',component: AddTaskComponent},
   { path:'add-user',component:AddUserComponent},
   { path:'remove-user'  ,component:RemoveUserComponent},
   { path:'home-page/registration',component:RegistrationComponent},
@@ -29,11 +28,13 @@ export const appRoutes: Routes = [
   { path: 'home-page', component: HomeComponentComponent},
   { path: 'project-list', component: ProjectListComponent},
   { path: 'user-list', component: UserListComponent},
-
-  { path: 'task-status',component:TaskStatusComponent},
-
   { path: 'home-page/login', component: LoginComponent},
   { path: 'project-details/:id', component: ProjectDetailsComponent },
+  { path: 'task-status',component:TaskStatusComponent},
+  { path: 'home-page/login', component: LoginComponent},
+  { path: 'project-details/:id', component: ProjectDetailsComponent },
+  { path: 'task-list/:projectId', component: TaskListComponent },
+  { path: 'task-users/:taskId', component: TaskUsersComponent },
 
 
 ];

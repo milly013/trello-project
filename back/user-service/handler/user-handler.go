@@ -89,6 +89,11 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 	user.Password = string(hashedPassword)
 
+	// Default role is "member" if not provided
+	if user.Role == "" {
+		user.Role = "member"
+	}
+
 	// Čuvanje verifikacionog koda
 	h.repo.SaveVerificationCode(c, user, verificationCode)
 
@@ -171,6 +176,38 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, users)
 }
+func (h *UserHandler) GetUsersByIds(c *gin.Context) {
+	var requestBody struct {
+		UserIds []string `json:"userIds"`
+	}
+
+	// Parsiraj JSON telo zahteva
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	// Pretvaranje ID-ova iz string formata u ObjectID
+	var userIDs []primitive.ObjectID
+	for _, id := range requestBody.UserIds {
+		objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+			return
+		}
+		userIDs = append(userIDs, objectID)
+	}
+
+	// Dobavljanje korisnika pomoću UserService-a
+	users, err := h.service.GetUsersByIds(c.Request.Context(), userIDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Vraćanje liste korisnika
+	c.JSON(http.StatusOK, users)
+}
 
 // Verifikacija korisnika
 func (h *UserHandler) VerifyUser(c *gin.Context) {
@@ -226,7 +263,47 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.JSON(http.StatusOK, gin.H{
+		"token":    token,
+		"userId":   user.ID.Hex(),
+		"userRole": user.Role,
+	})
+}
+
+// Handler metoda za proveru da li je korisnik menadžer
+func (h *UserHandler) CheckIfUserIsManager(c *gin.Context) {
+	userID := c.Param("userId")
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	isManager, err := h.service.IsUserManager(c.Request.Context(), objectID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"isManager": isManager})
+}
+
+// Handler metoda za proveru da li je korisnik član
+func (h *UserHandler) CheckIfUserIsMember(c *gin.Context) {
+	userID := c.Param("userId")
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	isMember, err := h.service.IsUserMember(c.Request.Context(), objectID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"isMember": isMember})
 }
 
 // Handler za promenu lozinke
