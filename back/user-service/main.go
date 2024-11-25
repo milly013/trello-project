@@ -40,7 +40,8 @@ func main() {
 
 	userRepo := repository.NewUserRepository(db)
 	jwtService := service.NewJWTService()
-	userHandler := handler.NewUserHandler(userRepo, jwtService)
+	userService := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userRepo, jwtService, userService)
 
 	router := gin.Default()
 
@@ -50,6 +51,7 @@ func main() {
 	router.POST("/verify/:email/:code", userHandler.VerifyUser)
 	router.POST("/login", userHandler.Login)
 	router.DELETE("/users/:id", userHandler.DeleteUserByID)
+	router.POST("/users/change-password", userHandler.ChangePassword)
 
 	// Middleware za zaštitu ruta
 	authMiddleware := middleware.JWTAuth(jwtService)

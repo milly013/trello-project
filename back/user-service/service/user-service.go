@@ -5,6 +5,7 @@ import (
 
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -68,4 +69,29 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]model.User, error) {
 // Verifikacija i aktivacija korisnika na osnovu emaila i koda
 func (s *UserService) VerifyUserAndActivate(ctx context.Context, email, code string) (bool, error) {
 	return s.repo.VerifyUserAndActivate(ctx, email, code)
+}
+
+// Promena lozinke korisnika
+func (s *UserService) ChangePassword(ctx context.Context, userID, currentPassword, newPassword string) error {
+	// Preuzmi korisnika prema ID-u
+	var user model.User
+	err := s.repo.GetUserByID(ctx, userID, &user)
+	if err != nil {
+		return err
+	}
+
+	// Proveri da li trenutna lozinka odgovara
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(currentPassword))
+	if err != nil {
+		return err // Trenutna lozinka nije validna
+	}
+
+	// Heširaj novu lozinku
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	// Ažuriraj korisnika sa novom lozinkom
+	return s.repo.UpdatePassword(ctx, userID, string(hashedPassword))
 }

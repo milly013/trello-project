@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/milly013/trello-project/back/user-service/model"
@@ -84,8 +85,12 @@ func (r *UserRepository) DeleteUserByID(ctx context.Context, id string) error {
 
 // Preuzimanje korisnika po ID-u
 func (r *UserRepository) GetUserByID(ctx context.Context, id string, user *model.User) error {
-	filter := bson.M{"_id": id}
-	err := r.collection.FindOne(ctx, filter).Decode(user)
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objectID}
+	err = r.collection.FindOne(ctx, filter).Decode(user)
 	return err
 }
 
@@ -137,4 +142,16 @@ func (r *UserRepository) VerifyUserAndActivate(ctx context.Context, email, code 
 	}
 
 	return true, nil
+}
+
+// Ažuriranje lozinke korisnika
+func (r *UserRepository) UpdatePassword(ctx context.Context, userID, newPassword string) error {
+    objectID, err := primitive.ObjectIDFromHex(userID)
+    if err != nil {
+        return fmt.Errorf("invalid user ID format")
+    }
+    filter := bson.M{"_id": objectID}
+    update := bson.M{"$set": bson.M{"password": newPassword}}
+    _, err = r.collection.UpdateOne(ctx, filter, update)
+    return err
 }

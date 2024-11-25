@@ -12,6 +12,7 @@ import (
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
 	"github.com/milly013/trello-project/back/user-service/service"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,12 +21,14 @@ import (
 type UserHandler struct {
 	repo       *repository.UserRepository
 	jwtService *service.JWTService
+	service    *service.UserService
 }
 
 // Kreiraj novi UserHandler
-func NewUserHandler(repo *repository.UserRepository, jwtService *service.JWTService) *UserHandler {
+func NewUserHandler(repo *repository.UserRepository, jwtService *service.JWTService, service *service.UserService) *UserHandler {
 	return &UserHandler{
 		repo:       repo,
+		service:    service,
 		jwtService: jwtService}
 }
 
@@ -224,4 +227,34 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
+}
+
+// Handler za promenu lozinke
+func (h *UserHandler) ChangePassword(c *gin.Context) {
+	var req struct {
+		UserID          string `json:"userId"`
+		CurrentPassword string `json:"currentPassword"`
+		NewPassword     string `json:"newPassword"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	// Proveri da li je userID validan ObjectID
+	_, err := primitive.ObjectIDFromHex(req.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	// Poziv metode za promenu lozinke iz UserService
+	userService := service.NewUserService(h.repo)
+	err = userService.ChangePassword(c.Request.Context(), req.UserID, req.CurrentPassword, req.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }
