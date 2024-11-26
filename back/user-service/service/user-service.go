@@ -32,12 +32,15 @@ func (s *UserService) VerifyCode(ctx context.Context, email, code string) (bool,
 
 // Preuzimanje korisnika na osnovu emaila
 func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
-	var user model.User
-	err := s.repo.GetUserByEmail(ctx, email, &user)
+	// Pozovemo repo da dobijemo korisnika i eventualnu grešku
+	user, err := s.repo.GetUserByEmail(ctx, email)
 	if err != nil {
+		// Ako korisnik nije pronađen ili postoji neka druga greška
 		return nil, err
 	}
-	return &user, nil
+
+	// Ako nema greške, vraćamo korisnika
+	return user, nil
 }
 
 // Kreiranje novog korisnika
@@ -52,13 +55,17 @@ func (s *UserService) DeleteUserByID(ctx context.Context, id string) error {
 
 // Preuzimanje korisnika po ID-u
 func (s *UserService) GetUserByID(ctx context.Context, id string) (*model.User, error) {
-	var user model.User
-	err := s.repo.GetUserByID(ctx, id, &user)
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
+    // Koristimo repo da preuzmemo korisnika na osnovu ID-a i dobijemo eventualnu grešku
+    user, err := s.repo.GetUserByID(ctx, id)
+    if err != nil {
+        // Ako postoji neka greška ili korisnik nije pronađen
+        return nil, err
+    }
+
+    // Ako je korisnik pronađen, vraćamo ga
+    return user, nil
 }
+
 
 // Preuzimanje svih korisnika
 func (s *UserService) GetAllUsers(ctx context.Context) ([]model.User, error) {

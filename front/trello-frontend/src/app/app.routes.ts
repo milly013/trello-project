@@ -13,6 +13,8 @@ import { UserListComponent } from './user-list/user-list.component';
 import { LoginComponent } from './login/login.component';
 import { ProjectDetailsComponent } from './project-details/project-details.component';
 import { TaskStatusComponent } from './task-status/task-status.component';
+import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
 
 export const appRoutes: Routes = [
   { path: 'project-list/create-project', component: CreateProjectComponent },
@@ -31,6 +33,8 @@ export const appRoutes: Routes = [
   { path: 'task-status',component:TaskStatusComponent},
   { path: 'home-page/login', component: LoginComponent},
   { path: 'project-details/:id', component: ProjectDetailsComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
 
 
 ];

@@ -56,13 +56,25 @@ func (r *UserRepository) VerifyCode(ctx context.Context, email, code string) (bo
 }
 
 // Preuzimanje korisnika na osnovu emaila
-func (r *UserRepository) GetUserByEmail(ctx context.Context, email string, user *model.User) error {
+func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
 	filter := bson.M{"email": email}
-	err := r.collection.FindOne(ctx, filter).Decode(user)
+	var user model.User
+	err := r.collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &user, nil
+}
+
+// Preuzimanje korisnika na osnovu reset tokena
+func (r *UserRepository) GetUserByResetToken(ctx context.Context, token string) (*model.User, error) {
+	filter := bson.M{"resetToken": token}
+	var user model.User
+	err := r.collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 // Kreiranje novog korisnika
@@ -83,10 +95,18 @@ func (r *UserRepository) DeleteUserByID(ctx context.Context, id string) error {
 }
 
 // Preuzimanje korisnika po ID-u
-func (r *UserRepository) GetUserByID(ctx context.Context, id string, user *model.User) error {
-	filter := bson.M{"_id": id}
-	err := r.collection.FindOne(ctx, filter).Decode(user)
-	return err
+func (r *UserRepository) GetUserByID(ctx context.Context, id string) (*model.User, error) {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	filter := bson.M{"_id": objectID}
+	var user model.User
+	err = r.collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 // Preuzimanje svih korisnika
@@ -137,4 +157,19 @@ func (r *UserRepository) VerifyUserAndActivate(ctx context.Context, email, code 
 	}
 
 	return true, nil
+}
+
+// Ažuriranje korisnika
+func (r *UserRepository) UpdateUser(ctx context.Context, user *model.User) error {
+	filter := bson.M{"_id": user.ID}
+	update := bson.M{
+		"$set": bson.M{
+			"password":            user.Password,
+			"resetToken":          user.ResetToken,
+			"resetTokenExpiresAt": user.ResetTokenExpiresAt,
+		},
+	}
+
+	_, err := r.collection.UpdateOne(ctx, filter, update)
+	return err
 }

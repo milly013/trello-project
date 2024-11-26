@@ -114,19 +114,14 @@ func (h *UserHandler) VerifyCode(c *gin.Context) {
 	}
 
 	// Dobijanje korisničkih podataka na osnovu emaila
-	var user model.User
-	if err := h.repo.GetUserByEmail(c, req.Email, &user); err != nil {
+	_, err = h.repo.GetUserByEmail(c.Request.Context(), req.Email)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user data"})
 		return
 	}
 
-	// Upisivanje korisnika u glavnu kolekciju nakon verifikacije
-	if err := h.repo.CreateUser(c, user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
+	// Sada možeš nastaviti s procesom registracije
+	c.JSON(http.StatusCreated, gin.H{"message": "User verified successfully"})
 }
 
 // Brisanje korisnika po ID-u
@@ -145,16 +140,21 @@ func (h *UserHandler) DeleteUserByID(c *gin.Context) {
 // Handler za preuzimanje korisnika po ID-u
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	id := c.Param("id")
-	var user model.User
-	err := h.repo.GetUserByID(c, id, &user)
+
+	// Pozovemo repo da dobijemo korisnika i eventualnu grešku
+	user, err := h.repo.GetUserByID(c.Request.Context(), id)
 	if err != nil {
+		// Ako je greška da nema dokumenata, vratiti odgovarajući status
 		if err == mongo.ErrNoDocuments {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
 		}
+		// Ako je došlo do neke druge greške, vratiti internu grešku servera
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Ako sve prođe kako treba, vratiti korisnika
 	c.JSON(http.StatusOK, user)
 }
 
@@ -202,10 +202,13 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	var user model.User
-	err := h.repo.GetUserByEmail(c.Request.Context(), req.Email, &user)
+	user, err := h.repo.GetUserByEmail(c.Request.Context(), req.Email)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -227,4 +230,76 @@ func (h *UserHandler) Login(c *gin.Context) {
 		"token":  token,
 		"userId": user.ID.Hex(),
 	})
+}
+
+// Handler za forgot password
+func (h *UserHandler) ForgotPassword(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	user, err := h.repo.GetUserByEmail(c.Request.Context(), req.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Generisanje tokena za reset lozinke i njegovo vreme isteka
+	resetToken := generateVerificationCode() // Možeš koristiti istu funkciju za generisanje tokena
+	user.ResetToken = resetToken
+	user.ResetTokenExpiresAt = time.Now().Add(15 * time.Minute)
+
+	// Ažuriranje korisnika sa novim tokenom
+	if err := h.repo.UpdateUser(c.Request.Context(), user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user with reset token"})
+		return
+	}
+
+	// Slanje email-a sa reset tokenom
+	if err := sendVerificationEmail(user.Email, resetToken); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send reset email"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset email sent successfully"})
+}
+
+func (h *UserHandler) ResetPassword(c *gin.Context) {
+	var req struct {
+		Token       string `json:"token" binding:"required"`
+		NewPassword string `json:"newPassword" binding:"required,min=6"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	user, err := h.repo.GetUserByResetToken(c.Request.Context(), req.Token)
+	if err != nil || user.ResetTokenExpiresAt.Before(time.Now()) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or expired token"})
+		return
+	}
+
+	// Heširanje nove lozinke
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+	user.Password = string(hashedPassword)
+	user.ResetToken = ""
+	user.ResetTokenExpiresAt = time.Time{}
+
+	if err := h.repo.UpdateUser(c.Request.Context(), user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }

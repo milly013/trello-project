@@ -50,6 +50,10 @@ func main() {
 	router.POST("/verify/:email/:code", userHandler.VerifyUser)
 	router.POST("/login", userHandler.Login)
 	router.DELETE("/users/:id", userHandler.DeleteUserByID)
+	
+	router.POST("/users/forgot-password", userHandler.ForgotPassword) //bitno
+	router.POST("/users/reset-password", userHandler.ResetPassword) //bitno
+
 
 	// Middleware za zaštitu ruta
 	authMiddleware := middleware.JWTAuth(jwtService)
