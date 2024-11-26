@@ -35,10 +35,9 @@ func main() {
 	defer client.Disconnect(context.TODO())
 
 	// Kreiramo instancu baze podataka
-	db := client.Database("mydatabase")
+	db := client.Database(os.Getenv("MONGODB_DATABASE"))
 	projectCollection = db.Collection("projects")
 
-	// Kreirajte repozitorijum
 	projectRepo := repository.NewProjectRepository(db)
 	projectService := service.NewProjectService(projectRepo)
 	projectHandler := handler.NewProjectHandler(projectService)
@@ -51,6 +50,10 @@ func main() {
 	router.GET("/projects/:id", projectHandler.GetProjectByID)
 	router.POST("/projects/:projectId/members", projectHandler.AddMemberToProject)
 	router.DELETE("/projects/:projectId/members", projectHandler.RemoveMemberFromProject)
+	router.POST("/projects/:projectId/tasks", projectHandler.AddTaskToProject)
+	router.GET("/projects/:id/tasks", projectHandler.GetTaskIDsByProject)
+	router.GET("/projects/manager/:managerId", projectHandler.GetProjectsByManager)
+	router.GET("/projects/member/:memberId", projectHandler.GetProjectsByMember)
 
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(
@@ -76,8 +79,9 @@ func main() {
 // Funkcija za povezivanje na MongoDB
 func connectToMongoDB() (*mongo.Client, error) {
 	mongoURI := os.Getenv("MONGODB_URI")
-	if mongoURI == "" {
-		log.Fatal("MONGO_URI environment variable not set")
+	dbName := os.Getenv("MONGODB_DATABASE")
+	if mongoURI == "" || dbName == "" {
+		log.Fatal("MongoDB URI or Database environment variable not set")
 	}
 
 	clientOptions := options.Client().ApplyURI(mongoURI)
@@ -99,6 +103,6 @@ func connectToMongoDB() (*mongo.Client, error) {
 		return nil, err
 	}
 
-	fmt.Println("Connected to MongoDB!")
+	fmt.Printf("Connected to MongoDB database %s!\n", dbName)
 	return client, nil
 }

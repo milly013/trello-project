@@ -12,6 +12,7 @@ import (
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
 	"github.com/milly013/trello-project/back/user-service/service"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,12 +21,14 @@ import (
 type UserHandler struct {
 	repo       *repository.UserRepository
 	jwtService *service.JWTService
+	service    *service.UserService
 }
 
 // Kreiraj novi UserHandler
-func NewUserHandler(repo *repository.UserRepository, jwtService *service.JWTService) *UserHandler {
+func NewUserHandler(repo *repository.UserRepository, jwtService *service.JWTService, service *service.UserService) *UserHandler {
 	return &UserHandler{
 		repo:       repo,
+		service:    service,
 		jwtService: jwtService}
 }
 
@@ -85,6 +88,11 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 	user.Password = string(hashedPassword)
+
+	// Default role is "member" if not provided
+	if user.Role == "" {
+		user.Role = "member"
+	}
 
 	// Čuvanje verifikacionog koda
 	h.repo.SaveVerificationCode(c, user, verificationCode)
@@ -168,6 +176,38 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, users)
 }
+func (h *UserHandler) GetUsersByIds(c *gin.Context) {
+	var requestBody struct {
+		UserIds []string `json:"userIds"`
+	}
+
+	// Parsiraj JSON telo zahteva
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	// Pretvaranje ID-ova iz string formata u ObjectID
+	var userIDs []primitive.ObjectID
+	for _, id := range requestBody.UserIds {
+		objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+			return
+		}
+		userIDs = append(userIDs, objectID)
+	}
+
+	// Dobavljanje korisnika pomoću UserService-a
+	users, err := h.service.GetUsersByIds(c.Request.Context(), userIDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Vraćanje liste korisnika
+	c.JSON(http.StatusOK, users)
+}
 
 // Verifikacija korisnika
 func (h *UserHandler) VerifyUser(c *gin.Context) {
@@ -220,17 +260,19 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	// Generiši JWT token
-	token, err := h.jwtService.GenerateJWT(user.Email)
+	token, err := h.jwtService.GenerateJWT(user.ID.Hex(), user.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"token":  token,
-		"userId": user.ID.Hex(),
+		"token":    token,
+		"userId":   user.ID.Hex(),
+		"userRole": user.Role,
 	})
 }
+
 
 // Handler za forgot password
 func (h *UserHandler) ForgotPassword(c *gin.Context) {
@@ -298,6 +340,68 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 
 	if err := h.repo.UpdateUser(c.Request.Context(), user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+	}
+}
+// Handler metoda za proveru da li je korisnik menadžer
+func (h *UserHandler) CheckIfUserIsManager(c *gin.Context) {
+	userID := c.Param("userId")
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	isManager, err := h.service.IsUserManager(c.Request.Context(), objectID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"isManager": isManager})
+}
+
+// Handler metoda za proveru da li je korisnik član
+func (h *UserHandler) CheckIfUserIsMember(c *gin.Context) {
+	userID := c.Param("userId")
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	isMember, err := h.service.IsUserMember(c.Request.Context(), objectID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"isMember": isMember})
+}
+
+func (h UserHandler) ChangePassword(c *gin.Context) {
+
+	var req struct {
+		UserID          string `json:"userId"`
+		CurrentPassword string `json:"currentPassword"`
+		NewPassword     string `json:"newPassword"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	// Proveri da li je userID validan ObjectID
+	_, err := primitive.ObjectIDFromHex(req.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	err = h.service.ChangePassword(c.Request.Context(), req.UserID, req.CurrentPassword, req.NewPassword)
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+
 		return
 	}
 

@@ -1,43 +1,62 @@
-
-
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { TaskService } from '../service/task.service';
 import { Task } from '../model/task.model';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-
-
 
 @Component({
   selector: 'app-add-task',
   standalone: true,
   templateUrl: './add-task.component.html',
   styleUrls: ['./add-task.component.css'],
-  imports: [ReactiveFormsModule,CommonModule,FormsModule],
+  imports: [ReactiveFormsModule, CommonModule, FormsModule],
   providers: [TaskService]
 })
 export class AddTaskComponent implements OnInit {
   taskForm: FormGroup;
+  projectId: string = '';
 
-  constructor(private fb: FormBuilder, http: HttpClient, private taskService: TaskService) {
+  constructor(
+    private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private taskService: TaskService
+  ) {
     this.taskForm = this.fb.group({
       title: ['', Validators.required],
       description: ['', Validators.required],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
-      assignedTo: ['', Validators.required],
+      assignedTo: [[]],
       status: ['Pending', Validators.required],
       projectId: ['', Validators.required]
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Preuzimanje projectId iz URL-a
+    this.route.paramMap.subscribe(params => {
+      this.projectId = params.get('projectId') || '';
+      // Postavi projectId u formi
+      if (this.projectId) {
+        this.taskForm.patchValue({ projectId: this.projectId });
+      }
+    });
+  }
 
   addTask(): void {
     if (this.taskForm.valid) {
-      const task: Task = this.taskForm.value;
-      
+      const formValue = this.taskForm.value;
+
+      // Pretvaranje datuma u odgovarajući format (ISO string)
+      formValue.startDate = new Date(formValue.startDate).toISOString();
+      formValue.endDate = new Date(formValue.endDate).toISOString();
+
+      // Proveri assignedTo
+      formValue.assignedTo = formValue.assignedTo ? [formValue.assignedTo] : [];
+
+      const task: Task = formValue;
+
       this.taskService.createTask(task).subscribe({
         next: (response) => {
           console.log('Task added successfully', response);
@@ -52,5 +71,4 @@ export class AddTaskComponent implements OnInit {
       });
     }
   }
-
 }

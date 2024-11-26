@@ -17,7 +17,11 @@
                     <label for="password">Password</label>
                     <input type="password" class="form-control" id="password" formControlName="password" required>
                 </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 10px !important;">Registruj se</button>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="isManager" formControlName="isManager">
+                    <label class="form-check-label" for="isManager">Register as Manager</label>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px !important;">Register</button>
             </form>
         </div>
     </div>

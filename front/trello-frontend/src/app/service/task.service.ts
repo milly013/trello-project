@@ -10,7 +10,7 @@ import { Task } from '../model/task.model';
   providedIn: 'root'
 })
 export class TaskService {
-  private apiUrl = 'http://localhost:8082'; // API URL za zadatke
+  private apiUrl = 'http://localhost:8000/api/task'; 
 
   constructor(private http: HttpClient) {}
 
@@ -24,6 +24,12 @@ export class TaskService {
 
   updateTaskStatus(taskId: string, newStatus: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/tasks/${taskId}/status`, { new_status: newStatus });
+  }
+  getTasksByProjectId(projectId: string): Observable<Task[]> {
+    return this.http.get<Task[]>(`${this.apiUrl}/tasks/${projectId}/tasks`);
+  }
+  getUsersByTaskId(taskId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/tasks/members/${taskId}/users`);
   }
   
 }

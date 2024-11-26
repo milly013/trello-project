@@ -1,0 +1,21 @@
+<div class="container mt-4">
+    <h2>Korisnici za zadatak</h2>
+    <table class="table" *ngIf="users.length > 0">
+      <thead>
+        <tr>
+          <th>Ime</th>
+          <th>Email</th>
+          <th>Uloga</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="users.length === 0">Nema korisnika za ovaj zadatak.</p>
+  </div>
+  

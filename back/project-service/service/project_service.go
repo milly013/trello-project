@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/milly013/trello-project/back/project-service/model"
 	"github.com/milly013/trello-project/back/project-service/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,9 +32,18 @@ func (s *ProjectService) GetProjects(ctx context.Context) ([]model.Project, erro
 func (s *ProjectService) GetProjectById(ctx context.Context, projectId string) (*model.Project, error) {
 	return s.repo.GetProjectById(ctx, projectId)
 }
+func (s *ProjectService) GetProjectByManager(ctx context.Context, managerId string) ([]model.Project, error) {
+	return s.repo.GetProjectsByManager(ctx, managerId)
+}
+func (s *ProjectService) GetProjectsByMember(ctx context.Context, memberId string) ([]model.Project, error) {
+	return s.repo.GetProjectsByMember(ctx, memberId)
+}
+func (s *ProjectService) GetTaskIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
+	return s.repo.GetTaskIDsByProject(ctx, projectId)
+}
 
 func (s *ProjectService) UserExists(ctx context.Context, memberId primitive.ObjectID) (bool, error) {
-	url := fmt.Sprintf("http://localhost:8080/users/%s", memberId.Hex())
+	url := fmt.Sprintf("http://api-gateway:8000/api/user/users/%s", memberId.Hex())
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Get(url)
@@ -102,28 +110,34 @@ func (s *ProjectService) TaskExists(ctx context.Context, taskId primitive.Object
 }
 
 func (s *ProjectService) AddTaskToProject(ctx context.Context, projectId string, taskId primitive.ObjectID) error {
-
-	exists, err := s.TaskExists(ctx, taskId)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("user does not exist")
-	}
-
+	log.Printf("Attempting to retrieve project with ID: %s", projectId)
 	project, err := s.repo.GetProjectById(ctx, projectId)
 	if err != nil {
+		log.Printf("Error retrieving project with ID %s: %v", projectId, err)
 		return err
 	}
 
+	log.Printf("Project retrieved successfully: %+v", project)
+
+	// Proveri da li task već postoji u projektu
 	for _, id := range project.TaskIDs {
 		if id == taskId {
-			return fmt.Errorf("tasks already exists in project")
+			log.Printf("Task with ID %s already exists in project %s", taskId.Hex(), projectId)
+			return fmt.Errorf("task already exists in project")
 		}
 	}
 
 	project.TaskIDs = append(project.TaskIDs, taskId)
-	return s.repo.UpdateProject(ctx, project)
+	log.Printf("Adding task ID %s to project %s", taskId.Hex(), projectId)
+
+	err = s.repo.UpdateProject(ctx, project)
+	if err != nil {
+		log.Printf("Error updating project with ID %s: %v", projectId, err)
+		return err
+	}
+
+	log.Printf("Project updated successfully with new task ID %s", taskId.Hex())
+	return nil
 }
 
 func (s *ProjectService) RemoveMemberFromProject(ctx context.Context, projectId string, memberId primitive.ObjectID) error {
@@ -150,35 +164,35 @@ func (s *ProjectService) RemoveMemberFromProject(ctx context.Context, projectId 
 	return fmt.Errorf("member not found in project")
 }
 
-// Endpoint za proveru članstva korisnika u projektu
-func (s *ProjectService) IsUserMember(c *gin.Context) {
-	projectID, err := primitive.ObjectIDFromHex(c.Param("projectID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
-		return
-	}
+// // Endpoint za proveru članstva korisnika u projektu
+// func (s *ProjectService) IsUserMember(c *gin.Context) {
+// 	projectID, err := primitive.ObjectIDFromHex(c.Param("projectID"))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+// 		return
+// 	}
 
-	userID, err := primitive.ObjectIDFromHex(c.Param("userID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
+// 	userID, err := primitive.ObjectIDFromHex(c.Param("userID"))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+// 		return
+// 	}
 
-	// Pozivamo GetProjectById, šaljemo context i string kao ID
-	project, err := s.GetProjectById(context.Background(), projectID.Hex())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch project"})
-		return
-	}
+// 	// Pozivamo GetProjectById, šaljemo context i string kao ID
+// 	project, err := s.GetProjectById(context.Background(), projectID.Hex())
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch project"})
+// 		return
+// 	}
 
-	// Provera da li se korisnik nalazi među članovima
-	isMember := false
-	for _, memberID := range project.MemberIDs {
-		if memberID == userID {
-			isMember = true
-			break
-		}
-	}
+// 	// Provera da li se korisnik nalazi među članovima
+// 	isMember := false
+// 	for _, memberID := range project.MemberIDs {
+// 		if memberID == userID {
+// 			isMember = true
+// 			break
+// 		}
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"isMember": isMember})
-}
+// 	c.JSON(http.StatusOK, gin.H{"isMember": isMember})
+// }

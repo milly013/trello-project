@@ -1,0 +1,32 @@
+<div class="container mt-4">
+  <h2>Lista Zadataka</h2>
+  <table class="table" *ngIf="tasks.length > 0">
+    <thead>
+      <tr>
+        <th>Naziv Zadatka</th>
+        <th>Opis</th>
+        <th>Početak</th>
+        <th>Kraj</th>
+        <th>Status</th>
+        <th>Akcije</th> <!-- Kolona za akcije -->
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let task of tasks">
+        <td>{{ task.title }}</td>
+        <td>{{ task.description }}</td>
+        <td>{{ task.startDate | date }}</td>
+        <td>{{ task.endDate | date }}</td>
+        <td>{{ task.status }}</td>
+        <td>
+          <!-- Dugme koje vodi na stranicu za listu korisnika -->
+          <button class="btn btn-primary" [routerLink]="['/task-users', task.id]">Pregledaj Korisnike</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p *ngIf="tasks.length === 0">Nema zadataka za ovaj projekat.</p>
+
+  <!-- Dugme za dodavanje novog zadatka -->
+  <button class="btn btn-success mt-3" [routerLink]="['/add-task', projectId]">Dodaj Zadatak</button>
+</div>

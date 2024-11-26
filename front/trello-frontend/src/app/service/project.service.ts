@@ -19,7 +19,7 @@ export interface Project {
   providedIn: 'root'
 })
 export class ProjectService {
-  private apiUrl = 'http://localhost:8081'; 
+  private apiUrl = 'http://localhost:8000/api/project'; 
   
   constructor(private http: HttpClient) { }
 
@@ -32,6 +32,12 @@ export class ProjectService {
 
   getProjects(): Observable<Project[]> {
     return this.http.get<Project[]>(`${this.apiUrl}/projects`);
+  }
+  getProjectsByManager(managerId: string): Observable<Project[]> {
+    return this.http.get<Project[]>(`${this.apiUrl}/projects/manager/${managerId}`);
+  }
+  getProjectsByMember(memberId: string): Observable<Project[]>{
+    return this.http.get<Project[]>(`${this.apiUrl}/projects/member/${memberId}`);
   }
 
   getProjectById(id: string): Observable<any> {

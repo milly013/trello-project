@@ -43,6 +43,57 @@ func (repo *ProjectRepository) GetProjects(ctx context.Context) ([]model.Project
 	}
 	return projects, nil
 }
+func (repo *ProjectRepository) GetProjectsByManager(ctx context.Context, managerId string) ([]model.Project, error) {
+	objID, err := primitive.ObjectIDFromHex(managerId)
+	if err != nil {
+		return nil, err
+	}
+	cursor, err := repo.collection.Find(ctx, bson.M{"managerId": objID})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var projects []model.Project
+	for cursor.Next(ctx) {
+		var project model.Project
+		if err := cursor.Decode(&project); err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+	return projects, nil
+
+}
+func (repo *ProjectRepository) GetProjectsByMember(ctx context.Context, memberId string) ([]model.Project, error) {
+	objID, err := primitive.ObjectIDFromHex(memberId)
+	if err != nil {
+		return nil, err
+	}
+	cursor, err := repo.collection.Find(ctx, bson.M{"memberIds": objID})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var projects []model.Project
+	for cursor.Next(ctx) {
+		var project model.Project
+		if err := cursor.Decode(&project); err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+	if cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return projects, nil
+
+}
 
 func (repo *ProjectRepository) GetProjectById(ctx context.Context, projectId string) (*model.Project, error) {
 	var project model.Project
@@ -69,4 +120,20 @@ func (repo *ProjectRepository) UpdateProject(ctx context.Context, project *model
 		bson.M{"$set": project},
 	)
 	return err
+}
+
+func (repo *ProjectRepository) GetTaskIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
+	var project model.Project
+	objID, err := primitive.ObjectIDFromHex(projectId)
+	if err != nil {
+		return nil, err
+	}
+	err = repo.collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&project)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil // Projekat nije pronađen
+		}
+		return nil, err
+	}
+	return project.TaskIDs, nil
 }

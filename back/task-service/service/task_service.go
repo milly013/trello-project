@@ -1,16 +1,22 @@
 package service
 
 import (
+	"bytes"
 	"context"
-	
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+
 	"github.com/milly013/trello-project/back/task-service/model"
 	"github.com/milly013/trello-project/back/task-service/repository"
+	userModel "github.com/milly013/trello-project/back/user-service/model"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type TaskService struct {
-	taskRepo          *repository.TaskRepository
-	projectServiceURL string
+	taskRepo *repository.TaskRepository
 }
 
 func NewTaskService(taskRepo *repository.TaskRepository) *TaskService {
@@ -20,7 +26,53 @@ func NewTaskService(taskRepo *repository.TaskRepository) *TaskService {
 }
 
 func (s *TaskService) AddTask(ctx context.Context, task *model.Task) error {
-	return s.taskRepo.CreateTask(ctx, task)
+
+	if task.ID.IsZero() {
+		task.ID = primitive.NewObjectID()
+	}
+
+	// Create the task in the task repository
+	err := s.taskRepo.CreateTask(ctx, task)
+	if err != nil {
+		return err
+	}
+
+	// Make a request to the project service to add the task ID to the project
+	projectID := task.ProjectID
+	if err := s.addTaskToProject(ctx, projectID, task.ID); err != nil {
+		return fmt.Errorf("failed to add task to project: %w", err)
+	}
+
+	return nil
+}
+func (s *TaskService) addTaskToProject(ctx context.Context, projectID, taskID primitive.ObjectID) error {
+	url := fmt.Sprintf("http://api-gateway:8000/api/project/projects/%s/tasks", projectID.Hex())
+
+	requestBody, err := json.Marshal(map[string]string{
+		"taskId": taskID.Hex(),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to marshal request body: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(requestBody))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("failed to add task to project, received status code: %d", resp.StatusCode)
+	}
+
+	return nil
 }
 
 func (s *TaskService) GetAllTasks(ctx context.Context) ([]model.Task, error) {
@@ -41,6 +93,80 @@ func (s *TaskService) GetTaskById(ctx context.Context, taskId string) (*model.Ta
 
 func (s *TaskService) UpdateTask(ctx context.Context, task *model.Task) error {
 	return s.taskRepo.UpdateTask(ctx, task)
+}
+func (s *TaskService) GetTaskIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
+	url := fmt.Sprintf("http://api-gateway:8000/api/project/projects/%s/tasks", projectId)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Proverite statusni kod
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to get task IDs by project, received status code: %d, response body: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	// Čitanje tela odgovora
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	fmt.Printf("Response body: %s\n", string(bodyBytes)) // Dodajte logovanje odgovora
+
+	// Dekodiranje odgovora
+	var taskIDStrings []string
+	if err := json.Unmarshal(bodyBytes, &taskIDStrings); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	fmt.Println("Decoded task IDs:", taskIDStrings)
+
+	// Konvertovanje u `ObjectID`
+	var taskIDs []primitive.ObjectID
+	for _, taskIDStr := range taskIDStrings {
+		taskID, err := primitive.ObjectIDFromHex(taskIDStr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert task ID from string: %w", err)
+		}
+		taskIDs = append(taskIDs, taskID)
+	}
+	return taskIDs, nil
+}
+
+func (s *TaskService) GetTasksByProject(ctx context.Context, projectId string) ([]model.Task, error) {
+	taskIDs, err := s.GetTaskIDsByProject(ctx, projectId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get task IDs from project-service: %w", err)
+	}
+
+	if projectId == "" {
+		return nil, fmt.Errorf("projectId cannot be empty")
+	}
+
+	fmt.Println("Retrieved Task IDs:", taskIDs)
+
+	tasks := []model.Task{}
+
+	for _, taskID := range taskIDs {
+		task, err := s.GetTaskById(ctx, taskID.Hex())
+		if err != nil {
+			return nil, fmt.Errorf("failed to get task by id %s: %w", taskID.Hex(), err)
+		}
+		if task != nil {
+			tasks = append(tasks, *task)
+		}
+	}
+	return tasks, nil
 }
 
 // Provera da li je korisnik dodeljen zadatku
@@ -75,4 +201,68 @@ func (s *TaskService) HasUnfinishedDependencies(ctx context.Context, taskID stri
 		}
 	}
 	return false, nil
+}
+
+// Funkcija koja dohvata sve korisnike dodeljene zadatku
+func (s *TaskService) GetUsersByTaskId(ctx context.Context, taskId string) ([]*userModel.User, error) {
+	// Prvo dobavljamo zadatak po ID-u
+	task, err := s.GetTaskById(ctx, taskId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get task: %w", err)
+	}
+
+	// Ako nema dodeljenih korisnika, vratimo prazan niz
+	if len(task.AssignedTo) == 0 {
+		return []*userModel.User{}, nil
+	}
+
+	// Dobavljamo informacije o korisnicima iz `user-service`
+	users, err := s.getUsersByIDs(ctx, task.AssignedTo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users: %w", err)
+	}
+
+	return users, nil
+}
+
+// // Funkcija za dobijanje korisnika prema listi ID-ova iz `user-service`
+func (s *TaskService) getUsersByIDs(ctx context.Context, userIDs []primitive.ObjectID) ([]*userModel.User, error) {
+	// Pretvaranje ID-ova u niz stringova
+	userIDStrings := make([]string, len(userIDs))
+	for i, id := range userIDs {
+		userIDStrings[i] = id.Hex()
+	}
+
+	// Kreiramo URL za pozivanje `user-service`
+	url := fmt.Sprintf("http://api-gateway:8000/api/user/users/getByIds")
+	requestBody, err := json.Marshal(map[string][]string{
+		"userIds": userIDStrings,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(requestBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get users, status code: %d", resp.StatusCode)
+	}
+
+	var users []*userModel.User
+	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return users, nil
 }

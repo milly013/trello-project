@@ -3,16 +3,21 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+
+
+
 interface LoginResponse {
   token: string;
   userId: string;
+  userRole: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080'; 
+  private apiUrl = 'http://localhost:8000/api/user/users'; 
+  private tokenKey = 'authToken';
 
   constructor(private http: HttpClient) {}
 
@@ -28,6 +33,7 @@ export class AuthService {
   // Funkcija za odjavljivanje korisnika
   logout(): void {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('managerId')
   }
   // Funkcija za dobijanje headera sa tokenom
   getAuthHeaders(): HttpHeaders {
@@ -36,4 +42,42 @@ export class AuthService {
       'Authorization': `Bearer ${token}`
     });
   }
+   // Provera da li je korisnik menadžer
+   isUserManager(): boolean {
+    const role = localStorage.getItem('userRole');
+    return role === 'manager';
+  }
+  
+  getUserId(): string | null {
+    const token = localStorage.getItem(this.tokenKey);
+    if (token) {
+      try {
+        const decodedToken: any = jwtDecode(token);
+        return decodedToken.userId || null;  
+      } catch (error) {
+        console.error('Invalid token', error);
+        return null;
+      }
+    }
+    return null;
+  }
+  getUserRole(): string | null {
+    return localStorage.getItem('userRole');
+  }
+
+  
+  // Provera da li je korisnik član
+  isUserMember(): boolean {
+    const role = localStorage.getItem('userRole');
+    return role === 'member';
+  }
+
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('token');
+  }
+  
 }
+function jwtDecode(token: string): any {
+  throw new Error('Function not implemented.');
+}
+
