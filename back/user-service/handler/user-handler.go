@@ -257,7 +257,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	// Generiši JWT token
-	token, err := h.jwtService.GenerateJWT(user.Email)
+	token, err := h.jwtService.GenerateJWT(user.ID.Hex(), user.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
 		return
@@ -304,4 +304,30 @@ func (h *UserHandler) CheckIfUserIsMember(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"isMember": isMember})
+}
+func (h UserHandler) ChangePassword(c *gin.Context) {
+	var req struct {
+		UserID          string `json:"userId"`
+		CurrentPassword string `json:"currentPassword"`
+		NewPassword     string `json:"newPassword"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	// Proveri da li je userID validan ObjectID
+	_, err := primitive.ObjectIDFromHex(req.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	err = h.service.ChangePassword(c.Request.Context(), req.UserID, req.CurrentPassword, req.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }

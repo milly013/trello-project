@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import {jwtDecode} from 'jwt-decode';
+
+
 
 interface LoginResponse {
   token: string;
@@ -14,6 +17,7 @@ interface LoginResponse {
 })
 export class AuthService {
   private apiUrl = 'http://localhost:8000/api/user/users'; 
+  private tokenKey = 'authToken';
 
   constructor(private http: HttpClient) {}
 
@@ -42,6 +46,23 @@ export class AuthService {
    isUserManager(): boolean {
     const role = localStorage.getItem('userRole');
     return role === 'manager';
+  }
+  
+  getUserId(): string | null {
+    const token = localStorage.getItem(this.tokenKey);
+    if (token) {
+      try {
+        const decodedToken: any = jwtDecode(token);
+        return decodedToken.userId || null;  
+      } catch (error) {
+        console.error('Invalid token', error);
+        return null;
+      }
+    }
+    return null;
+  }
+  getUserRole(): string | null {
+    return localStorage.getItem('userRole');
   }
 
   

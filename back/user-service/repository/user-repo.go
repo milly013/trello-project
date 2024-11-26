@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/milly013/trello-project/back/user-service/model"
@@ -168,4 +169,14 @@ func (r *UserRepository) GetUsersByIDs(ctx context.Context, ids []primitive.Obje
 	}
 
 	return users, nil
+}
+func (r *UserRepository) UpdatePassword(ctx context.Context, userID, newPassword string) error {
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("invalid user ID format")
+	}
+	filter := bson.M{"id": objectID}
+	update := bson.M{"$set": bson.M{"password": newPassword}}
+	_, err = r.collection.UpdateOne(ctx, filter, update)
+	return err
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -89,4 +90,27 @@ func (s *UserService) IsUserMember(ctx context.Context, userID primitive.ObjectI
 		return false, err
 	}
 	return user.Role == "member", nil
+}
+func (s *UserService) ChangePassword(ctx context.Context, userID, currentPassword, newPassword string) error {
+	// Preuzmi korisnika prema ID-u
+	var user model.User
+	err := s.repo.GetUserByID(ctx, userID, &user)
+	if err != nil {
+		return err
+	}
+
+	// Proveri da li trenutna lozinka odgovara
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(currentPassword))
+	if err != nil {
+		return err // Trenutna lozinka nije validna
+	}
+
+	// Heširaj novu lozinku
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	// Ažuriraj korisnika sa novom lozinkom
+	return s.repo.UpdatePassword(ctx, userID, string(hashedPassword))
 }

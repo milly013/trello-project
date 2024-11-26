@@ -56,6 +56,7 @@ func main() {
 	router.POST("/users/getByIds", userHandler.GetUsersByIds)
 	router.GET("/users/isManager/:userId", userHandler.CheckIfUserIsManager)
 	router.GET("/users/isMember/:userId", userHandler.CheckIfUserIsMember)
+	router.POST("/users/change-password", userHandler.ChangePassword)
 
 	// Middleware za zaštitu ruta
 	authMiddleware := middleware.JWTAuth(jwtService)

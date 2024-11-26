@@ -71,6 +71,34 @@ func (h *ProjectHandler) GetProjectByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, project)
 }
+func (h *ProjectHandler) GetProjectsByManager(c *gin.Context) {
+	managerId := c.Param("managerId")
+
+	if _, err := primitive.ObjectIDFromHex(managerId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid manager ID format"})
+		return
+	}
+	prjects, err := h.service.GetProjectByManager(context.Background(), managerId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve projects"})
+		return
+	}
+	c.JSON(http.StatusOK, prjects)
+}
+func (h *ProjectHandler) GetProjectsByMember(c *gin.Context) {
+	memberId := c.Param("memberId")
+
+	if _, err := primitive.ObjectIDFromHex(memberId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid member ID format"})
+		return
+	}
+	projects, err := h.service.GetProjectsByMember(context.Background(), memberId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve projects"})
+		return
+	}
+	c.JSON(http.StatusOK, projects)
+}
 func (h *ProjectHandler) GetTaskIDsByProject(c *gin.Context) {
 	projectId := c.Param("id")
 

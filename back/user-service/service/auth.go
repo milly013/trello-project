@@ -15,15 +15,17 @@ func NewJWTService() *JWTService {
 }
 
 type Claims struct {
-	Email string `json:"email"`
+	UserID string `json:"userId"`
+	Email  string `json:"email"`
 	jwt.RegisteredClaims
 }
 
 // GenerateJWT generiše JWT token za korisnika
-func (j *JWTService) GenerateJWT(email string) (string, error) {
+func (j *JWTService) GenerateJWT(userId string, email string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
-		Email: email,
+		UserID: userId,
+		Email:  email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
