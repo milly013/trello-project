@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math/rand"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
 	"github.com/milly013/trello-project/back/user-service/service"
@@ -273,7 +275,6 @@ func (h *UserHandler) Login(c *gin.Context) {
 	})
 }
 
-
 // Handler za forgot password
 func (h *UserHandler) ForgotPassword(c *gin.Context) {
 	var req struct {
@@ -342,6 +343,7 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
 	}
 }
+
 // Handler metoda za proveru da li je korisnik menadžer
 func (h *UserHandler) CheckIfUserIsManager(c *gin.Context) {
 	userID := c.Param("userId")
@@ -408,6 +410,106 @@ func (h UserHandler) ChangePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }
 
+// Secret key for JWT token (preporučujem da koristiš environment varijablu za ovo)
+var jwtSecret = []byte("tvoja-tajna")
 
+// Handler za slanje magic link-a korisniku
+func (h *UserHandler) RequestMagicLinkHandler(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required"`
+	}
 
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
+		return
+	}
 
+	// Provera da li korisnik postoji
+	user, err := h.repo.GetUserByEmail(c.Request.Context(), req.Email)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finding user"})
+		return
+	}
+
+	// Generisanje JWT tokena sa istekon od 15 minuta
+	expirationTime := time.Now().Add(15 * time.Minute)
+	claims := jwt.MapClaims{
+		"email": user.Email,
+		"exp":   expirationTime.Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
+		return
+	}
+
+	// Kreiraj magic link
+	magicLink := fmt.Sprintf("http://localhost:4200/magic-login?token=%s", tokenString)
+
+	// Pošalji magic link putem emaila (možeš koristiti postojeću funkciju `sendVerificationEmail`)
+	err = sendVerificationEmail(user.Email, magicLink)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send magic link"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Magic link sent successfully"})
+}
+
+// Handler za verifikaciju magic link tokena i prijavu korisnika
+func (h *UserHandler) MagicLoginHandler(c *gin.Context) {
+	var req struct {
+		Token string `json:"token" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is required"})
+		return
+	}
+
+	// Parsiraj i validiraj JWT token
+	token, err := jwt.Parse(req.Token, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+
+	// Proveri email iz tokena
+	email := claims["email"].(string)
+	user, err := h.repo.GetUserByEmail(context.Background(), email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user data"})
+		return
+	}
+
+	// Generiši JWT token za prijavu korisnika
+	loginToken, err := h.jwtService.GenerateJWT(user.ID.Hex(), user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating login token"})
+		return
+	}
+
+	// Vrati login token korisniku
+	c.JSON(http.StatusOK, gin.H{
+		"token":    loginToken,
+		"userId":   user.ID.Hex(),
+		"userRole": user.Role,
+	})
+}

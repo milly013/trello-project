@@ -1,0 +1,10 @@
+<div class="magic-link-container">
+    <form (ngSubmit)="onSubmit()" #magicLinkForm="ngForm">
+      <label for="email">Enter your email address:</label>
+      <input type="email" id="email" name="email" [(ngModel)]="email" required>
+      <button type="submit" [disabled]="!magicLinkForm.form.valid">Send Magic Link</button>
+    </form>
+    <p *ngIf="message">{{ message }}</p>
+    <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+  </div>
+  

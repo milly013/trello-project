@@ -64,6 +64,10 @@ func main() {
 	router.GET("/users/isMember/:userId", userHandler.CheckIfUserIsMember)
 	router.POST("/users/change-password", userHandler.ChangePassword)
 
+	router.POST("/request-magic-link", userHandler.RequestMagicLinkHandler)
+	router.POST("/magic-login", userHandler.MagicLoginHandler)
+
+
 
 	// Middleware za zaštitu ruta
 	authMiddleware := middleware.JWTAuth(jwtService)
