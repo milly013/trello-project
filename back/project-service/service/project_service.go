@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/milly013/trello-project/back/project-service/model"
@@ -21,6 +22,23 @@ func NewProjectService(repo *repository.ProjectRepository) *ProjectService {
 }
 
 func (s *ProjectService) CreateProject(ctx context.Context, project *model.Project) error {
+	sanitizedName := sanitizeProjectName(project.Name)
+	if sanitizedName == "" {
+		return fmt.Errorf("project name contains invalid characters or is empty")
+	}
+	project.Name = sanitizedName
+
+	if !isValidEndDate(project.EndDate) {
+		return fmt.Errorf("end date cannot be in the past")
+	}
+
+	if project.MaxMembers < project.MinMembers {
+		return fmt.Errorf("maximum members cannot be less than minimum members")
+	}
+
+	project.CreatedAt = time.Now()
+	project.IsActive = true
+
 	_, err := s.repo.CreateProject(ctx, project)
 	return err
 }
@@ -164,35 +182,18 @@ func (s *ProjectService) RemoveMemberFromProject(ctx context.Context, projectId 
 	return fmt.Errorf("member not found in project")
 }
 
-// // Endpoint za proveru članstva korisnika u projektu
-// func (s *ProjectService) IsUserMember(c *gin.Context) {
-// 	projectID, err := primitive.ObjectIDFromHex(c.Param("projectID"))
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
-// 		return
-// 	}
+//===============Validacije=====================
 
-// 	userID, err := primitive.ObjectIDFromHex(c.Param("userID"))
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-// 		return
-// 	}
+func sanitizeProjectName(name string) string {
+	// Dozvoljeni karakteri: slova, brojevi, razmaci, crtice, podvlake
+	regex := regexp.MustCompile(`^[a-zA-Z0-9\s_-]+$`)
+	if regex.MatchString(name) {
+		return name
+	}
+	return ""
 
-// 	// Pozivamo GetProjectById, šaljemo context i string kao ID
-// 	project, err := s.GetProjectById(context.Background(), projectID.Hex())
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch project"})
-// 		return
-// 	}
-
-// 	// Provera da li se korisnik nalazi među članovima
-// 	isMember := false
-// 	for _, memberID := range project.MemberIDs {
-// 		if memberID == userID {
-// 			isMember = true
-// 			break
-// 		}
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{"isMember": isMember})
-// }
+}
+func isValidEndDate(endDate time.Time) bool {
+	now := time.Now()
+	return endDate.After(now)
+}

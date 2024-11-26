@@ -59,39 +59,13 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// Provera da li korisnik već postoji
-	exists, err := h.repo.CheckUserExists(c, user.Username, user.Email)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	if exists {
-		c.JSON(http.StatusConflict, gin.H{"error": "User with given username or email already exists"})
-		return
-	}
-
 	// Generisanje verifikacionog koda
 	verificationCode := generateVerificationCode()
 
 	// Slanje koda putem e-pošte
-	err = sendVerificationEmail(user.Email, verificationCode)
-	if err != nil {
+	if err := sendVerificationEmail(user.Email, verificationCode); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send verification code"})
 		return
-	}
-
-	// Heširanje lozinke
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-		return
-	}
-	user.Password = string(hashedPassword)
-
-	// Default role is "member" if not provided
-	if user.Role == "" {
-		user.Role = "member"
 	}
 
 	// Čuvanje verifikacionog koda
@@ -122,14 +96,14 @@ func (h *UserHandler) VerifyCode(c *gin.Context) {
 	}
 
 	// Dobijanje korisničkih podataka na osnovu emaila
-	var user model.User
-	if err := h.repo.GetUserByEmail(c, req.Email, &user); err != nil {
+	user, err := h.repo.GetUserByEmail(c, req.Email)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user data"})
 		return
 	}
 
 	// Upisivanje korisnika u glavnu kolekciju nakon verifikacije
-	if err := h.repo.CreateUser(c, user); err != nil {
+	if err := h.repo.CreateUser(c, *user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 		return
 	}
@@ -242,8 +216,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	var user model.User
-	err := h.repo.GetUserByEmail(c.Request.Context(), req.Email, &user)
+	user, err := h.repo.GetUserByEmail(c.Request.Context(), req.Email)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
 		return
