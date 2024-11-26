@@ -1,0 +1,19 @@
+<div class="container mt-5">
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      {{ errorMessage }}
+    </div>
+    <div *ngIf="user" class="card">
+      <div class="card-header">
+        <h2>User Profile</h2>
+      </div>
+      <div class="card-body">
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Role:</strong> {{ user.role }}</p>
+      </div>
+
+      <button class="btn btn-primary" routerLink="/change-password">Change Password</button>
+
+    </div>
+  </div>
+  

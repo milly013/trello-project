@@ -61,7 +61,8 @@ export class UserService {
       'Content-Type': 'application/json'
     });
 
-    return this.http.post<any>(`${this.apiUrl}/users/register`, userData, { headers });
+    return this.http.post<any>(`${this.apiUrl}/register`, userData, { headers });
+
   }
 
   // **Nova metoda za slanje verifikacionog koda korisniku** 📧
@@ -72,7 +73,8 @@ export class UserService {
 
     const body = { email: email };
 
-    return this.http.post<any>(`${this.apiUrl}/users/send-verification-code`, body, { headers });
+    return this.http.post<any>(`${this.apiUrl}/send-verification-code`, body, { headers });
+
   }
 
   // **Nova metoda za verifikaciju korisnika pomoću koda** ✅
@@ -83,7 +85,7 @@ export class UserService {
 
     const body = { email: email, code: code };
 
-    return this.http.post<any>(`${this.apiUrl}/users/verify`, body, { headers });
+    return this.http.post<any>(`${this.apiUrl}/verify`, body, { headers });
   }
 
   addMemberToTask(taskId: string, userId: string): Observable<any> {
@@ -113,7 +115,13 @@ export class UserService {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
-    return this.http.post(`${this.apiUrl}/change-password`, requestBody, { headers });
+    return this.http.post(`${this.apiUrl}/${requestBody.userId}/change-password`, requestBody, { headers });
+
   }
+  
+  getUserDetails(userId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${userId}`);
+  }
+  
   
 }

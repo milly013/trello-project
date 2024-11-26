@@ -22,8 +22,13 @@
             <a class="nav-link" routerLink="home-page/registration" content="">Registracija</a>
           </li>
           <li class="nav-item">
+            <a class="nav-link" routerLink="user-profile">Profile</a>
+          </li>
+
+          <li class="nav-item">
             <a class="nav-link" routerLink="user-list">Users</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link" *ngIf="!isLoggedIn()" routerLink="home-page/login">Login</a>
           </li>
@@ -31,6 +36,7 @@
             <a class="nav-link" *ngIf="isLoggedIn()" (click)="onLogout()" style="cursor: pointer;">Logout</a>
 
           </li>
+
         </ul>
       </div>
     </div>

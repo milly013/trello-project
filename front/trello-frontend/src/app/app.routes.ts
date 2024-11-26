@@ -20,6 +20,7 @@ import { ResetPasswordComponent } from './reset-password/reset-password.componen
 import { TaskListComponent } from './task-list/task-list.component';
 import { TaskUsersComponent } from './task-users/task-users.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
+import { UserProfileComponent } from './user-profile/user-profile.component';
 
 
 export const appRoutes: Routes = [
@@ -45,7 +46,8 @@ export const appRoutes: Routes = [
 
   { path: 'task-list/:projectId', component: TaskListComponent },
   { path: 'task-users/:taskId', component: TaskUsersComponent },
-  { path: 'change-password', component: ChangePasswordComponent }
+  { path: 'change-password', component: ChangePasswordComponent },
+  {path: 'user-profile',component: UserProfileComponent}
 
 
 
