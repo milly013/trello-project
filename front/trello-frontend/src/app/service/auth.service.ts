@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import {jwtDecode} from 'jwt-decode';
 
 
 
@@ -53,7 +54,7 @@ export class AuthService {
     if (token) {
       try {
         const decodedToken: any = jwtDecode(token);
-        return decodedToken.userId || null;  
+        return decodedToken.userId || null;
       } catch (error) {
         console.error('Invalid token', error);
         return null;
@@ -77,7 +78,5 @@ export class AuthService {
   }
   
 }
-function jwtDecode(token: string): any {
-  throw new Error('Function not implemented.');
-}
+
 

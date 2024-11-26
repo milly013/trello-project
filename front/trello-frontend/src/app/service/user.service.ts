@@ -108,4 +108,12 @@ export class UserService {
   resetPassword(token: string, newPassword: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/reset-password`, { token, newPassword });
   }
+
+  changePassword(requestBody: { userId: string, currentPassword: string, newPassword: string }): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    return this.http.post(`${this.apiUrl}/change-password`, requestBody, { headers });
+  }
+  
 }
