@@ -52,11 +52,11 @@ func main() {
 	router.POST("/verify/:email/:code", userHandler.VerifyUser)
 	router.POST("/users/login", userHandler.Login)
 	router.DELETE("/users/:id", userHandler.DeleteUserByID)
-	router.POST("/users/change-password", userHandler.ChangePassword)
 	router.GET("/users/:id", userHandler.GetUserByID)
 	router.POST("/users/getByIds", userHandler.GetUsersByIds)
 	router.GET("/users/isManager/:userId", userHandler.CheckIfUserIsManager)
 	router.GET("/users/isMember/:userId", userHandler.CheckIfUserIsMember)
+	router.POST("/users/change-password", userHandler.ChangePassword)
 
 	// Middleware za zaštitu ruta
 	authMiddleware := middleware.JWTAuth(jwtService)

@@ -33,6 +33,12 @@ export class ProjectService {
   getProjects(): Observable<Project[]> {
     return this.http.get<Project[]>(`${this.apiUrl}/projects`);
   }
+  getProjectsByManager(managerId: string): Observable<Project[]> {
+    return this.http.get<Project[]>(`${this.apiUrl}/projects/manager/${managerId}`);
+  }
+  getProjectsByMember(memberId: string): Observable<Project[]>{
+    return this.http.get<Project[]>(`${this.apiUrl}/projects/member/${memberId}`);
+  }
 
   getProjectById(id: string): Observable<any> {
     const headers = new HttpHeaders({

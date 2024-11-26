@@ -147,14 +147,14 @@ func (r *UserRepository) VerifyUserAndActivate(ctx context.Context, email, code 
 
 // Ažuriranje lozinke korisnika
 func (r *UserRepository) UpdatePassword(ctx context.Context, userID, newPassword string) error {
-    objectID, err := primitive.ObjectIDFromHex(userID)
-    if err != nil {
-        return fmt.Errorf("invalid user ID format")
-    }
-    filter := bson.M{"_id": objectID}
-    update := bson.M{"$set": bson.M{"password": newPassword}}
-    _, err = r.collection.UpdateOne(ctx, filter, update)
-    return err
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("invalid user ID format")
+	}
+	filter := bson.M{"_id": objectID}
+	update := bson.M{"$set": bson.M{"password": newPassword}}
+	_, err = r.collection.UpdateOne(ctx, filter, update)
+	return err
 }
 
 // Preuzimanje korisnika prema listi ID-eva

@@ -72,7 +72,25 @@ func (s *UserService) VerifyUserAndActivate(ctx context.Context, email, code str
 	return s.repo.VerifyUserAndActivate(ctx, email, code)
 }
 
-// Promena lozinke korisnika
+// Preuzimanje korisnika prema listi ID-eva
+func (s *UserService) GetUsersByIds(ctx context.Context, ids []primitive.ObjectID) ([]model.User, error) {
+	return s.repo.GetUsersByIDs(ctx, ids)
+}
+func (s *UserService) IsUserManager(ctx context.Context, userID primitive.ObjectID) (bool, error) {
+	user, err := s.GetUserByID(ctx, userID.Hex())
+	if err != nil {
+		return false, err
+	}
+	return user.Role == "manager", nil
+}
+
+func (s *UserService) IsUserMember(ctx context.Context, userID primitive.ObjectID) (bool, error) {
+	user, err := s.GetUserByID(ctx, userID.Hex())
+	if err != nil {
+		return false, err
+	}
+	return user.Role == "member", nil
+}
 func (s *UserService) ChangePassword(ctx context.Context, userID, currentPassword, newPassword string) error {
 	// Preuzmi korisnika prema ID-u
 	var user model.User
@@ -95,24 +113,4 @@ func (s *UserService) ChangePassword(ctx context.Context, userID, currentPasswor
 
 	// Ažuriraj korisnika sa novom lozinkom
 	return s.repo.UpdatePassword(ctx, userID, string(hashedPassword))
-}
-
-// Preuzimanje korisnika prema listi ID-eva
-func (s *UserService) GetUsersByIds(ctx context.Context, ids []primitive.ObjectID) ([]model.User, error) {
-	return s.repo.GetUsersByIDs(ctx, ids)
-}
-func (s *UserService) IsUserManager(ctx context.Context, userID primitive.ObjectID) (bool, error) {
-	user, err := s.GetUserByID(ctx, userID.Hex())
-	if err != nil {
-		return false, err
-	}
-	return user.Role == "manager", nil
-}
-
-func (s *UserService) IsUserMember(ctx context.Context, userID primitive.ObjectID) (bool, error) {
-	user, err := s.GetUserByID(ctx, userID.Hex())
-	if err != nil {
-		return false, err
-	}
-	return user.Role == "member", nil
 }

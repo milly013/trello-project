@@ -257,7 +257,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	// Generiši JWT token
-	token, err := h.jwtService.GenerateJWT(user.Email)
+	token, err := h.jwtService.GenerateJWT(user.ID.Hex(), user.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
 		return
@@ -306,8 +306,8 @@ func (h *UserHandler) CheckIfUserIsMember(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"isMember": isMember})
 }
 
-// Handler za promenu lozinke
-func (h *UserHandler) ChangePassword(c *gin.Context) {
+func (h UserHandler) ChangePassword(c *gin.Context) {
+
 	var req struct {
 		UserID          string `json:"userId"`
 		CurrentPassword string `json:"currentPassword"`
@@ -325,9 +325,8 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	// Poziv metode za promenu lozinke iz UserService
-	userService := service.NewUserService(h.repo)
-	err = userService.ChangePassword(c.Request.Context(), req.UserID, req.CurrentPassword, req.NewPassword)
+	err = h.service.ChangePassword(c.Request.Context(), req.UserID, req.CurrentPassword, req.NewPassword)
+
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return

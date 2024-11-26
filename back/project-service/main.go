@@ -52,6 +52,8 @@ func main() {
 	router.DELETE("/projects/:projectId/members", projectHandler.RemoveMemberFromProject)
 	router.POST("/projects/:projectId/tasks", projectHandler.AddTaskToProject)
 	router.GET("/projects/:id/tasks", projectHandler.GetTaskIDsByProject)
+	router.GET("/projects/manager/:managerId", projectHandler.GetProjectsByManager)
+	router.GET("/projects/member/:memberId", projectHandler.GetProjectsByMember)
 
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(

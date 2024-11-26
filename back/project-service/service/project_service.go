@@ -32,6 +32,12 @@ func (s *ProjectService) GetProjects(ctx context.Context) ([]model.Project, erro
 func (s *ProjectService) GetProjectById(ctx context.Context, projectId string) (*model.Project, error) {
 	return s.repo.GetProjectById(ctx, projectId)
 }
+func (s *ProjectService) GetProjectByManager(ctx context.Context, managerId string) ([]model.Project, error) {
+	return s.repo.GetProjectsByManager(ctx, managerId)
+}
+func (s *ProjectService) GetProjectsByMember(ctx context.Context, memberId string) ([]model.Project, error) {
+	return s.repo.GetProjectsByMember(ctx, memberId)
+}
 func (s *ProjectService) GetTaskIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
 	return s.repo.GetTaskIDsByProject(ctx, projectId)
 }

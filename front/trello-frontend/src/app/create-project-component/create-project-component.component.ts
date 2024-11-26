@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProjectService, Project } from '../service/project.service';
 import { HttpClientModule } from '@angular/common/http';
+import { AuthService } from '../service/auth.service';
 
 @Component({
   selector: 'app-create-project',
@@ -14,7 +15,7 @@ import { HttpClientModule } from '@angular/common/http';
 export class CreateProjectComponent implements OnInit {
   projectForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private projectService: ProjectService) {
+  constructor(private fb: FormBuilder, private projectService: ProjectService, private authService: AuthService) {
     this.projectForm = this.fb.group({
       name: ['', Validators.required],
       expected_end_date: ['', Validators.required],
@@ -28,7 +29,7 @@ export class CreateProjectComponent implements OnInit {
   addProject(): void {
     if (this.projectForm.valid) {
       // Uzmi managerId iz localStorage-a
-      const managerId = localStorage.getItem('managerId');
+      const managerId = this.authService.getUserId()
       if (!managerId) {
         console.error('Manager ID is not available in local storage');
         return;
