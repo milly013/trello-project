@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
+	"time"
 
 	"github.com/milly013/trello-project/back/task-service/model"
 	"github.com/milly013/trello-project/back/task-service/repository"
@@ -29,6 +31,18 @@ func (s *TaskService) AddTask(ctx context.Context, task *model.Task) error {
 
 	if task.ID.IsZero() {
 		task.ID = primitive.NewObjectID()
+	}
+	sanitizedTitle := sanitizeInput(task.Title)
+	if sanitizedTitle == "" {
+		return fmt.Errorf("task title is invalid or empty")
+	}
+	task.Title = sanitizedTitle
+
+	sanitizedDescription := sanitizeInput(task.Description)
+	task.Description = sanitizedDescription
+
+	if !isValidDateRange(task.StartDate, task.EndDate) {
+		return fmt.Errorf("end date cannot be before start date or start date cannot be in the past")
 	}
 
 	// Create the task in the task repository
@@ -265,4 +279,23 @@ func (s *TaskService) getUsersByIDs(ctx context.Context, userIDs []primitive.Obj
 	}
 
 	return users, nil
+}
+
+//==========Validacije=========================
+
+func sanitizeInput(input string) string {
+	// Dozvoljeni karakteri: slova, brojevi, razmaci, osnovni interpunkcijski znakovi
+	regex := regexp.MustCompile(`[^a-zA-Z0-9\s.,!?_-]`)
+	return regex.ReplaceAllString(input, "")
+}
+
+func isValidDateRange(startDate, endDate time.Time) bool {
+	now := time.Now()
+	if startDate.Before(now) {
+		return false
+	}
+	if endDate.Before(startDate) {
+		return false
+	}
+	return true
 }

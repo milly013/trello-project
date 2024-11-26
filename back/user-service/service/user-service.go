@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 
 	"github.com/milly013/trello-project/back/user-service/model"
 	"github.com/milly013/trello-project/back/user-service/repository"
@@ -34,19 +36,47 @@ func (s *UserService) VerifyCode(ctx context.Context, email, code string) (bool,
 
 // Preuzimanje korisnika na osnovu emaila
 func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
-	// Pozovemo repo da dobijemo korisnika i eventualnu grešku
+
 	user, err := s.repo.GetUserByEmail(ctx, email)
 	if err != nil {
 		// Ako korisnik nije pronađen ili postoji neka druga greška
 		return nil, err
 	}
-
 	// Ako nema greške, vraćamo korisnika
 	return user, nil
 }
 
 // Kreiranje novog korisnika
 func (s *UserService) CreateUser(ctx context.Context, user model.User) error {
+	// Validacija korisničkog unosa
+	if !isValidEmail(user.Email) {
+		return fmt.Errorf("invalid email format")
+	}
+	if len(user.Password) < 8 {
+		return fmt.Errorf("password must be at least 8 characters")
+	}
+	// Provera da li korisnik već postoji
+	exists, err := s.repo.CheckUserExists(ctx, user.Username, user.Email)
+	if err != nil {
+		return fmt.Errorf("failed to check if user exists: %w", err)
+	}
+
+	if exists {
+		return fmt.Errorf("user with given username or email already exists")
+	}
+
+	// Hashovanje lozinke
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+	user.Password = string(hashedPassword)
+
+	// Podešavanje podrazumevane uloge
+	if user.Role == "" {
+		user.Role = "member"
+	}
+
 	return s.repo.CreateUser(ctx, user)
 }
 
@@ -105,6 +135,11 @@ func (s *UserService) ChangePassword(ctx context.Context, userID, currentPasswor
 		return err
 	}
 
+	// Validacija nove lozinke
+	if !isValidPassword(newPassword) {
+		return fmt.Errorf("password must be at least 8 characters long")
+	}
+
 	// Proveri da li trenutna lozinka odgovara
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(currentPassword))
 	if err != nil {
@@ -119,4 +154,16 @@ func (s *UserService) ChangePassword(ctx context.Context, userID, currentPasswor
 
 	// Ažuriraj korisnika sa novom lozinkom
 	return s.repo.UpdatePassword(ctx, userID, string(hashedPassword))
+}
+
+//=================Validacije======================
+
+func isValidEmail(email string) bool {
+	regex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(regex)
+	return re.MatchString(email)
+}
+
+func isValidPassword(password string) bool {
+	return len(password) >= 8
 }

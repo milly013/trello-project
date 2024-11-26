@@ -61,39 +61,13 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// Provera da li korisnik već postoji
-	exists, err := h.repo.CheckUserExists(c, user.Username, user.Email)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	if exists {
-		c.JSON(http.StatusConflict, gin.H{"error": "User with given username or email already exists"})
-		return
-	}
-
 	// Generisanje verifikacionog koda
 	verificationCode := generateVerificationCode()
 
 	// Slanje koda putem e-pošte
-	err = sendVerificationEmail(user.Email, verificationCode)
-	if err != nil {
+	if err := sendVerificationEmail(user.Email, verificationCode); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send verification code"})
 		return
-	}
-
-	// Heširanje lozinke
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-		return
-	}
-	user.Password = string(hashedPassword)
-
-	// Default role is "member" if not provided
-	if user.Role == "" {
-		user.Role = "member"
 	}
 
 	// Čuvanje verifikacionog koda
@@ -132,6 +106,7 @@ func (h *UserHandler) VerifyCode(c *gin.Context) {
 
 	// Sada možeš nastaviti s procesom registracije
 	c.JSON(http.StatusCreated, gin.H{"message": "User verified successfully"})
+
 }
 
 // Brisanje korisnika po ID-u

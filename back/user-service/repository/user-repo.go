@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"regexp"
+
 	"github.com/milly013/trello-project/back/user-service/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -59,7 +61,11 @@ func (r *UserRepository) VerifyCode(ctx context.Context, email, code string) (bo
 
 // Preuzimanje korisnika na osnovu emaila
 func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
+	if !isValidEmail(email) {
+		return nil, fmt.Errorf("invalid email format")
+	}
 	filter := bson.M{"email": email}
+
 	var user model.User
 	err := r.collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
@@ -111,6 +117,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id string) (*model.Use
 	}
 	return &user, nil
 }
+
 /*func (r *UserRepository) GetUserByID(ctx context.Context, id string, user *model.User) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -172,7 +179,6 @@ func (r *UserRepository) VerifyUserAndActivate(ctx context.Context, email, code 
 	return true, nil
 }
 
-
 // Ažuriranje korisnika
 func (r *UserRepository) UpdateUser(ctx context.Context, user *model.User) error {
 	filter := bson.M{"_id": user.ID}
@@ -225,4 +231,8 @@ func (r *UserRepository) GetUsersByIDs(ctx context.Context, ids []primitive.Obje
 
 	return users, nil
 }
-
+func isValidEmail(email string) bool {
+	regex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(regex)
+	return re.MatchString(email)
+}
