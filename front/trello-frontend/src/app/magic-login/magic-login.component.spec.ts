@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MagicLinkComponent } from './magic-link.component';
+import { MagicLoginComponent } from './magic-login.component';
 
-describe('MagicLinkComponent', () => {
-  let component: MagicLinkComponent;
-  let fixture: ComponentFixture<MagicLinkComponent>;
+describe('MagicLoginComponent', () => {
+  let component: MagicLoginComponent;
+  let fixture: ComponentFixture<MagicLoginComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MagicLinkComponent]
+      imports: [MagicLoginComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(MagicLinkComponent);
+    fixture = TestBed.createComponent(MagicLoginComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

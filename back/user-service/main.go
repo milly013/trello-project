@@ -53,10 +53,8 @@ func main() {
 	router.POST("/users/login", userHandler.Login)
 	router.DELETE("/users/:id", userHandler.DeleteUserByID)
 
-	
 	router.POST("/users/forgot-password", userHandler.ForgotPassword) //bitno
-	router.POST("/users/reset-password", userHandler.ResetPassword) //bitno
-
+	router.POST("/users/reset-password", userHandler.ResetPassword)   //bitno
 
 	router.GET("/users/:id", userHandler.GetUserByID)
 	router.POST("/users/getByIds", userHandler.GetUsersByIds)
@@ -64,10 +62,8 @@ func main() {
 	router.GET("/users/isMember/:userId", userHandler.CheckIfUserIsMember)
 	router.POST("/users/change-password", userHandler.ChangePassword)
 
-	router.POST("/request-magic-link", userHandler.RequestMagicLinkHandler)
-	router.POST("/magic-login", userHandler.MagicLoginHandler)
-
-
+	router.POST("/users/request-magic-link", userHandler.RequestMagicLinkHandler)
+	router.POST("/users/magic-login", userHandler.MagicLoginHandler)
 
 	// Middleware za zaštitu ruta
 	authMiddleware := middleware.JWTAuth(jwtService)
