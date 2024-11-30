@@ -61,5 +61,16 @@ export class ProjectService {
     };
     return this.http.post<any>(`${this.apiUrl}/projects/${projectId}/members`, body, { headers });
   }
+  // Metoda za uklanjanje korisnika iz projekta
+  removeUserFromProject(projectId: string, memberId: string): Observable<any> {
+    const url = `${this.apiUrl}/projects/${projectId}/members`;
+    const options = {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: { memberId: memberId }
+    };
+    return this.http.delete(url, options);
+  }
   
 }

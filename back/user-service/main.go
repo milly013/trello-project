@@ -52,10 +52,8 @@ func main() {
 	router.POST("/verify/:email/:code", userHandler.VerifyUser)
 	router.POST("/users/login", userHandler.Login)
 	router.DELETE("/users/:id", userHandler.DeleteUserByID)
-
-	router.POST("/users/forgot-password", userHandler.ForgotPassword) //bitno
-	router.POST("/users/reset-password", userHandler.ResetPassword)   //bitno
-
+	router.POST("/users/forgot-password", userHandler.ForgotPassword)
+	router.POST("/users/reset-password", userHandler.ResetPassword)
 	router.GET("/users/:id", userHandler.GetUserByID)
 	router.POST("/users/getByIds", userHandler.GetUsersByIds)
 	router.GET("/users/isManager/:userId", userHandler.CheckIfUserIsManager)

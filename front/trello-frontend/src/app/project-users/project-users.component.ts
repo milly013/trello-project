@@ -76,5 +76,21 @@ export class ProjectUsersComponent implements OnInit{
       });
     }
   }
+  removeUserFromProject(userId: string): void {
+    if (this.projectId) {
+      this.projectService.removeUserFromProject(this.projectId, userId).subscribe({
+        next: () => {
+          console.log(`User ${userId} removed from project ${this.projectId}`);
+          // Ažuriramo listu članova projekta
+          this.members = this.members.filter(member => member.id !== userId);
+          // Ažuriramo listu dostupnih korisnika
+          this.loadAvailableUsers();
+        },
+        error: (error: any) => {
+          console.error(`Error removing user from project:`, error);
+        },
+      });
+    }
+  }
 
 }

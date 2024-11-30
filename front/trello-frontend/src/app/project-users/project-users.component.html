@@ -10,6 +10,7 @@
             <h5 class="mb-0">{{ member.username }}</h5>
             <small class="text-muted">{{ member.email }}</small>
           </div>
+          <button class="btn btn-danger btn-sm" (click)="removeUserFromProject(member.id)">Remove</button>
         </div>
       </div>
     </div>
@@ -19,7 +20,7 @@
         <strong>Nema korisnika u ovom projektu.</strong>
       </div>
     </ng-template>
-    
+
     <!-- Dugme za dodavanje člana -->
   <button class="btn btn-primary mt-3" (click)="showAddUserForm = true">Add Member</button>
 

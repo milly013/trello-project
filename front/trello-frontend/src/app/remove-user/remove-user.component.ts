@@ -23,17 +23,17 @@ export class RemoveUserComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  removeUser() {
-    if (this.removeUserForm.valid) {
-      const projectId = this.removeUserForm.get('projectId')?.value;
-      const userId = this.removeUserForm.get('userId')?.value;
-      this.userService.removeUserFromProject(projectId, userId).subscribe({
-        next: (response) => {
-          console.log('User removed from project', response);
-          this.removeUserForm.reset();
-        },
-        error: (err) => console.error('Error removing user:', err)
-      });
-    }
-  }
+  // removeUser() {
+  //   if (this.removeUserForm.valid) {
+  //     const projectId = this.removeUserForm.get('projectId')?.value;
+  //     const userId = this.removeUserForm.get('userId')?.value;
+  //     this.userService.removeUserFromProject(projectId, userId).subscribe({
+  //       next: (response) => {
+  //         console.log('User removed from project', response);
+  //         this.removeUserForm.reset();
+  //       },
+  //       error: (err) => console.error('Error removing user:', err)
+  //     });
+  //   }
+  // }
 }
