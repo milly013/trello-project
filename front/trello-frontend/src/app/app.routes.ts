@@ -19,8 +19,10 @@ import { TaskListComponent } from './task-list/task-list.component';
 import { TaskUsersComponent } from './task-users/task-users.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
-import { MagicLinkComponent } from './magic-link/magic-link.component';
 import { ProjectUsersComponent } from './project-users/project-users.component';
+import { RequestMagicLinkComponent } from './request-magic-link/request-magic-link.component';
+import { MagicLoginComponent } from './magic-login/magic-login.component';
+
 
 
 export const appRoutes: Routes = [
@@ -46,8 +48,10 @@ export const appRoutes: Routes = [
   { path: 'task-users/:taskId', component: TaskUsersComponent },
   { path: 'change-password', component: ChangePasswordComponent },
   { path: 'user-profile',component: UserProfileComponent},
-  { path: 'magic-link', component: MagicLinkComponent },
   { path: 'project-users/:projectId', component: ProjectUsersComponent},
+  { path: 'request-magic-link', component: RequestMagicLinkComponent },
+  { path: 'magic-login', component: MagicLoginComponent }
+
 
 
 
