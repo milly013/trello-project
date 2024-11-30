@@ -28,6 +28,9 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	// Učitavanje crne liste lozinki
+    service.LoadBlacklistedPasswords("blacklist_passwords.txt") // Dodaj ovo da učitaš crnu listu lozinki
+	
 	// Povezivanje na MongoDB
 	client, err := connectToMongoDB()
 	if err != nil {

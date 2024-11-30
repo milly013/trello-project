@@ -55,27 +55,47 @@ func sendVerificationEmail(toEmail, verificationCode string) error {
 
 // Handler za dodavanje novog korisnika uz proveru postojanja i slanje verifikacionog koda
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	var user model.User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+    var user model.User
+    if err := c.ShouldBindJSON(&user); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
-	// Generisanje verifikacionog koda
-	verificationCode := generateVerificationCode()
+    // Provera da li lozinka pripada crnoj listi
+    if service.IsPasswordBlacklisted(user.Password) {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Lozinka koju ste uneli je previše slaba. Molimo vas koristite jaču lozinku."})
+        return
+    }
 
-	// Slanje koda putem e-pošte
-	if err := sendVerificationEmail(user.Email, verificationCode); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send verification code"})
-		return
-	}
+    // Provera da li korisnik već postoji
+    exists, err := h.repo.CheckUserExists(c, user.Username, user.Email)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
 
-	// Čuvanje verifikacionog koda
-	h.repo.SaveVerificationCode(c, user, verificationCode)
+    if exists {
+        c.JSON(http.StatusConflict, gin.H{"error": "Korisnik sa zadatim korisničkim imenom ili email-om već postoji"})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{"message": "Verification code sent"})
+    // Heširanje lozinke
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Greška prilikom heširanja lozinke"})
+        return
+    }
+    user.Password = string(hashedPassword)
+
+    // Čuvanje korisnika
+    err = h.repo.CreateUser(c, user)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Greška prilikom kreiranja korisnika"})
+        return
+    }
+
+    c.JSON(http.StatusCreated, gin.H{"message": "Korisnik uspešno kreiran"})
 }
-
 // Handler za verifikaciju koda
 func (h *UserHandler) VerifyCode(c *gin.Context) {
 	var req struct {
