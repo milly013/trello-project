@@ -137,3 +137,22 @@ func (repo *ProjectRepository) GetTaskIDsByProject(ctx context.Context, projectI
 	}
 	return project.TaskIDs, nil
 }
+
+func (repo *ProjectRepository) GetUserIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
+	var project model.Project
+
+	objID, err := primitive.ObjectIDFromHex(projectId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repo.collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&project)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return project.MemberIDs, nil
+}

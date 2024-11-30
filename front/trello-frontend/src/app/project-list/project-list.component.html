@@ -26,6 +26,6 @@
         </tr>
       </tbody>
     </table>
-    <button class="btn btn-primary" routerLink="create-project">Add Project</button>
+    <button class="btn btn-primary" *ngIf="isUserManager()" routerLink="create-project">Add Project</button>
   </div>
   

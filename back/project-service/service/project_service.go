@@ -1,7 +1,9 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +12,7 @@ import (
 
 	"github.com/milly013/trello-project/back/project-service/model"
 	"github.com/milly013/trello-project/back/project-service/repository"
+	userModel "github.com/milly013/trello-project/back/user-service/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -58,6 +61,67 @@ func (s *ProjectService) GetProjectsByMember(ctx context.Context, memberId strin
 }
 func (s *ProjectService) GetTaskIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
 	return s.repo.GetTaskIDsByProject(ctx, projectId)
+}
+func (s *ProjectService) GetUsersByProjectId(ctx context.Context, projectId string) ([]userModel.User, error) {
+	url := "http://api-gateway:8000/api/user/users/getByIds"
+
+	// Dobavi listu ID-eva korisnika iz prosleđenog projekta
+	userIds, err := s.repo.GetUserIDsByProject(ctx, projectId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Pretvori listu ObjectID-eva u stringove
+	userIdsHex := convertObjectIDsToHex(userIds)
+
+	// Kreiraj payload sa listom ID-ova
+	payload := struct {
+		UserIDs []string `json:"userIds"`
+	}{
+		UserIDs: userIdsHex,
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	// Marshal-uj payload u JSON
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	// Kreiraj HTTP POST zahtev
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	// Pošalji zahtev
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Proveri statusni kod
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to retrieve users, status code: %d", resp.StatusCode)
+	}
+
+	// Dekodiraj odgovor
+	var users []userModel.User
+	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+func convertObjectIDsToHex(ids []primitive.ObjectID) []string {
+	hexIDs := make([]string, len(ids))
+	for i, id := range ids {
+		hexIDs[i] = id.Hex()
+	}
+	return hexIDs
 }
 
 func (s *ProjectService) UserExists(ctx context.Context, memberId primitive.ObjectID) (bool, error) {

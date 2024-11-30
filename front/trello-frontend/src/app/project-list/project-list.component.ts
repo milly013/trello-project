@@ -60,5 +60,8 @@ export class ProjectListComponent implements OnInit {
       }
     });
   }
+  isUserManager():boolean{
+    return this.authService.getUserRole() === 'manager';
+  }
   
 }

@@ -13,15 +13,14 @@ import { UserListComponent } from './user-list/user-list.component';
 import { LoginComponent } from './login/login.component';
 import { ProjectDetailsComponent } from './project-details/project-details.component';
 import { TaskStatusComponent } from './task-status/task-status.component';
-
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
-
 import { TaskListComponent } from './task-list/task-list.component';
 import { TaskUsersComponent } from './task-users/task-users.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { MagicLinkComponent } from './magic-link/magic-link.component';
+import { ProjectUsersComponent } from './project-users/project-users.component';
 
 
 export const appRoutes: Routes = [
@@ -41,15 +40,14 @@ export const appRoutes: Routes = [
   { path: 'task-status',component:TaskStatusComponent},
   { path: 'home-page/login', component: LoginComponent},
   { path: 'project-details/:id', component: ProjectDetailsComponent },
-
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
-
   { path: 'task-list/:projectId', component: TaskListComponent },
   { path: 'task-users/:taskId', component: TaskUsersComponent },
   { path: 'change-password', component: ChangePasswordComponent },
   { path: 'user-profile',component: UserProfileComponent},
-  { path: 'magic-link', component: MagicLinkComponent }
+  { path: 'magic-link', component: MagicLinkComponent },
+  { path: 'project-users/:projectId', component: ProjectUsersComponent},
 
 
 

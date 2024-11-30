@@ -46,4 +46,20 @@ export class ProjectService {
     })
     return this.http.get<any>(`${this.apiUrl}/projects/${id}`, { headers });
   }
+  getUsersByProjectId(projectId: string): Observable<any> {
+    const url = `${this.apiUrl}/users/${projectId}`;
+    return this.http.get<any>(url, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    });
+  }
+  addUserToProject(projectId: string, memberId: string): Observable<any>{
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    const body = {
+      memberId: memberId
+    };
+    return this.http.post<any>(`${this.apiUrl}/projects/${projectId}/members`, body, { headers });
+  }
+  
 }

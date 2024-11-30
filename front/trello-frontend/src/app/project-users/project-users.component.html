@@ -1,0 +1,39 @@
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">Korisnici projekta</h2>
+    
+    <div *ngIf="members.length > 0; else noMembers">
+      <div class="list-group">
+        <div 
+          class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+          *ngFor="let member of members">
+          <div>
+            <h5 class="mb-0">{{ member.username }}</h5>
+            <small class="text-muted">{{ member.email }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <ng-template #noMembers>
+      <div class="alert alert-warning text-center" role="alert">
+        <strong>Nema korisnika u ovom projektu.</strong>
+      </div>
+    </ng-template>
+    
+    <!-- Dugme za dodavanje člana -->
+  <button class="btn btn-primary mt-3" (click)="showAddUserForm = true">Add Member</button>
+
+  <!-- Forma za dodavanje člana -->
+  <div *ngIf="showAddUserForm" class="mt-4">
+    <h4>Dodaj korisnika na projekat</h4>
+    <div class="form-group">
+      <label for="userSelect">Odaberi korisnika:</label>
+      <select class="form-control" id="userSelect" [(ngModel)]="selectedUserId">
+        <option *ngFor="let user of availableUsers" [value]="user.id">{{ user.username }}</option>
+      </select>
+    </div>
+    <button class="btn btn-success mt-2" (click)="addUserToProject()">Add User</button>
+    <button class="btn btn-secondary mt-2 ml-2" (click)="showAddUserForm = false">Cancel</button>
+  </div>
+  </div>
+  

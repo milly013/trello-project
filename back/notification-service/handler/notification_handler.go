@@ -33,6 +33,14 @@ func (h *NotificationHandler) CreateNotification(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, gin.H{"message": "Notification created successfully"})
 }
+func (h *NotificationHandler) GetAllNotifications(c *gin.Context) {
+	notifications, err := h.service.GetAllNotifications(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve notifications"})
+		return
+	}
+	c.JSON(http.StatusOK, notifications)
+}
 
 // Dohvatanje obaveštenja po korisničkom ID-ju
 func (h *NotificationHandler) GetNotificationsByUserID(c *gin.Context) {

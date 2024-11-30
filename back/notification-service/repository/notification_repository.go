@@ -51,3 +51,17 @@ func (r *NotificationRepository) MarkAsRead(ctx context.Context, notificationID 
 	_, err := r.collection.UpdateOne(ctx, filter, update)
 	return err
 }
+
+// Metoda za dohvatanje svih obaveštenja
+func (r *NotificationRepository) GetAllNotifications(ctx context.Context) ([]model.Notification, error) {
+	cursor, err := r.collection.Find(ctx, bson.M{}) // Pražan filter vraća sve dokumente
+	if err != nil {
+		return nil, err
+	}
+
+	var notifications []model.Notification
+	if err = cursor.All(ctx, &notifications); err != nil {
+		return nil, err
+	}
+	return notifications, nil
+}

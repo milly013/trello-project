@@ -33,3 +33,6 @@ func (s *NotificationService) GetNotificationsByUserID(ctx context.Context, user
 func (s *NotificationService) MarkNotificationAsRead(ctx context.Context, notificationID primitive.ObjectID) error {
 	return s.repo.MarkAsRead(ctx, notificationID)
 }
+func (s *NotificationService) GetAllNotifications(ctx context.Context) ([]model.Notification, error) {
+	return s.repo.GetAllNotifications(ctx)
+}

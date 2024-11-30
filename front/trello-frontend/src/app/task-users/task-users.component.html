@@ -6,6 +6,7 @@
           <th>Ime</th>
           <th>Email</th>
           <th>Uloga</th>
+          <th>Akcije</th>
         </tr>
       </thead>
       <tbody>
@@ -13,9 +14,27 @@
           <td>{{ user.username }}</td>
           <td>{{ user.email }}</td>
           <td>{{ user.role }}</td>
+          <td>
+            <button class="btn btn-danger" (click)="removeUser(user.id)">Remove user</button>
+          </td>
         </tr>
       </tbody>
     </table>
     <p *ngIf="users.length === 0">Nema korisnika za ovaj zadatak.</p>
+       <!-- Dugme za dodavanje korisnika -->
+      <button class="btn btn-primary mt-3" (click)="showAddUserForm = true">Add User to Task</button>
+
+      <!-- Forma za dodavanje korisnika -->
+  <div *ngIf="showAddUserForm" class="mt-4">
+    <h4>Dodaj korisnika na zadatak</h4>
+    <div class="form-group">
+      <label for="userSelect">Odaberi korisnika:</label>
+      <select class="form-control" id="userSelect" [(ngModel)]="selectedUserId">
+        <option *ngFor="let user of projectUsers" [value]="user.id">{{ user.username }}</option>
+      </select>
+    </div>
+    <button class="btn btn-success mt-2" (click)="addUserToTask()">Add User</button>
+    <button class="btn btn-secondary mt-2 ml-2" (click)="showAddUserForm = false">Cancel</button>
+  </div>
   </div>
   

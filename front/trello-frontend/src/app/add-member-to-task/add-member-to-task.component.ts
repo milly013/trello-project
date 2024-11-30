@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from '../service/user.service';
+import { TaskService } from '../service/task.service';
 
 
 @Component({
@@ -16,7 +17,7 @@ export class AddMemberToTaskComponent {
 
   constructor(
     private fb: FormBuilder,
-    private userService: UserService
+    private taskService: TaskService
   ) {
     // Kreiramo Reactive Form
     this.memberForm = this.fb.group({
@@ -31,7 +32,7 @@ export class AddMemberToTaskComponent {
       const taskId = this.memberForm.get('taskId')?.value;
       const userId = this.memberForm.get('userId')?.value;
 
-      this.userService.addMemberToTask(taskId, userId).subscribe(
+      this.taskService.addMemberToTask(taskId, userId).subscribe(
         response => {
           console.log('Member added to task:', response);
           alert('Member added to task successfully!');

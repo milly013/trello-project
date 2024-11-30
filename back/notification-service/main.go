@@ -46,6 +46,7 @@ func main() {
 
 	// Definisanje ruta
 	router.POST("/notifications", notificationHandler.CreateNotification)
+	router.GET("/notifications", notificationHandler.GetAllNotifications)
 	router.GET("/notifications/:userID", notificationHandler.GetNotificationsByUserID)
 	router.PUT("/notifications/:notificationID/read", notificationHandler.MarkNotificationAsRead)
 

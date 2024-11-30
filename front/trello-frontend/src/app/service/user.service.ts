@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { ProjectService } from './project.service';
 
 export interface User {
   id: string;
@@ -17,13 +18,18 @@ export interface User {
 export class UserService {
   private apiUrl = 'http://localhost:8000/api/user/users'; 
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService, private projectService: ProjectService) {}
 
   // Metoda za dobijanje liste korisnika
   getUsers(): Observable<any> {
     const headers = this.authService.getAuthHeaders();
     return this.http.get<any>(`${this.apiUrl}`, { headers });
   }
+  getUsersByProjectId(projectId: string): Observable<any>{
+    const users = this.projectService.getUsersByProjectId(projectId)
+    return users
+  }
+ 
   // Metoda za brisanje korisnika po ID-u
   deleteUser(userId: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${userId}`);
@@ -31,17 +37,17 @@ export class UserService {
 
 
   // Metoda za dodavanje novog korisnika u projekat
-  addUserToProject(projectId: string, userId: string): Observable<any> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
+  // addUserToProject(projectId: string, userId: string): Observable<any> {
+  //   const headers = new HttpHeaders({
+  //     'Content-Type': 'application/json'
+  //   });
 
-    const body = {
-      userId: userId
-    };
+  //   const body = {
+  //     userId: userId
+  //   };
 
-    return this.http.post<any>(`${this.apiUrl}/projects/${projectId}/members`, body, { headers });
-  }
+  //   return this.http.post<any>(`${this.apiUrl}/projects/${projectId}/members`, body, { headers });
+  // }
 
   // Metoda za uklanjanje korisnika iz projekta
   removeUserFromProject(projectId: string, userId: string): Observable<any> {
@@ -88,19 +94,10 @@ export class UserService {
     return this.http.post<any>(`${this.apiUrl}/verify`, body, { headers });
   }
 
-  addMemberToTask(taskId: string, userId: string): Observable<any> {
-    const url = `${this.apiUrl}/tasks/${taskId}/members`;
-    const body = { userId: userId };
-    return this.http.post<any>(url, body, {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-    });
-  }
+  
 
 
-  removeUserFromTask(taskId: string, userId: string): Observable<any> {
-    const url = `${this.apiUrl}/tasks/${taskId}/members/${userId}`;
-    return this.http.delete(url);
-  }
+  
 
 
   forgotPassword(email: string): Observable<any> {
@@ -115,7 +112,8 @@ export class UserService {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
-    return this.http.post(`${this.apiUrl}/${requestBody.userId}/change-password`, requestBody, { headers });
+    console.log(requestBody.currentPassword,requestBody.newPassword,requestBody.userId)
+    return this.http.post(`${this.apiUrl}/change-password`, requestBody, { headers });
 
   }
   

@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from '../service/user.service';
+import { privateDecrypt } from 'crypto';
+import { TaskService } from '../service/task.service';
 
 
 @Component({
@@ -16,7 +18,8 @@ export class RemoveMemberFromTaskComponent {
 
   constructor(
     private fb: FormBuilder,
-    private userService: UserService // Injektujemo UserService
+    private userService: UserService,
+    private taskService: TaskService
   ) {
     // Kreiramo formu sa dva inputa: taskId i userId
     this.removeMemberForm = this.fb.group({
@@ -31,7 +34,7 @@ export class RemoveMemberFromTaskComponent {
       const { taskId, userId } = this.removeMemberForm.value;
 
       // Pozivamo servis koji šalje zahtev za uklanjanje člana sa taska
-      this.userService.removeUserFromTask(taskId, userId).subscribe(
+      this.taskService.removeUserFromTask(taskId, userId).subscribe(
         response => {
           console.log('Member removed successfully', response);
           alert('Member removed successfully');

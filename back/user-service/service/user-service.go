@@ -128,7 +128,6 @@ func (s *UserService) IsUserMember(ctx context.Context, userID primitive.ObjectI
 	return user.Role == "member", nil
 }
 func (s *UserService) ChangePassword(ctx context.Context, userID, currentPassword, newPassword string) error {
-	// Preuzmi korisnika prema ID-u
 
 	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {

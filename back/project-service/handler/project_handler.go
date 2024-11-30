@@ -113,6 +113,25 @@ func (h *ProjectHandler) GetTaskIDsByProject(c *gin.Context) {
 	c.JSON(http.StatusOK, TaskIDs)
 }
 
+func (h *ProjectHandler) GetUsersByProjectId(c *gin.Context) {
+	projectId := c.Param("projectId")
+
+	// Proveri validnost ID-a projekta
+	if _, err := primitive.ObjectIDFromHex(projectId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID format"})
+		return
+	}
+
+	// Dobavi korisnike za projekat koristeći servisnu metodu
+	users, err := h.service.GetUsersByProjectId(context.Background(), projectId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users for project"})
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
+}
+
 func (h *ProjectHandler) AddMemberToProject(c *gin.Context) {
 	projectId := c.Param("projectId")
 	var request struct {
