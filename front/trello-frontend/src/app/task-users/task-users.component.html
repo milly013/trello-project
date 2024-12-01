@@ -15,14 +15,14 @@
           <td>{{ user.email }}</td>
           <td>{{ user.role }}</td>
           <td>
-            <button class="btn btn-danger" (click)="removeUser(user.id)">Remove user</button>
+            <button class="btn btn-danger" (click)="removeUser(user.id)" *ngIf="isUserManager()">Remove user</button>
           </td>
         </tr>
       </tbody>
     </table>
     <p *ngIf="users.length === 0">Nema korisnika za ovaj zadatak.</p>
        <!-- Dugme za dodavanje korisnika -->
-      <button class="btn btn-primary mt-3" (click)="showAddUserForm = true">Add User to Task</button>
+      <button class="btn btn-primary mt-3" (click)="showAddUserForm = true" *ngIf="isUserManager()">Add User to Task</button>
 
       <!-- Forma za dodavanje korisnika -->
   <div *ngIf="showAddUserForm" class="mt-4">

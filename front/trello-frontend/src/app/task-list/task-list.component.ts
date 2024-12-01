@@ -40,4 +40,11 @@ export class TaskListComponent implements OnInit {
       );
     }
   }
+  isUserManager(): boolean{
+    var role = localStorage.getItem('userRole')
+    if(role == 'manager'){
+      return true
+      }
+      return false
+  }
 }

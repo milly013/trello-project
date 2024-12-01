@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Route, Router } from '@angular/router';
 import { TaskService } from '../service/task.service';
 import { Task } from '../model/task.model';
 import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-add-task',
@@ -20,7 +21,8 @@ export class AddTaskComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private taskService: TaskService
+    private taskService: TaskService,
+    private router: Router,
   ) {
     this.taskForm = this.fb.group({
       title: ['', Validators.required],
@@ -61,6 +63,7 @@ export class AddTaskComponent implements OnInit {
         next: (response) => {
           console.log('Task added successfully', response);
           this.taskForm.reset();
+          this.router.navigate(['/task-list', this.projectId]);
         },
         error: (error) => {
           console.error('Error adding task', error);

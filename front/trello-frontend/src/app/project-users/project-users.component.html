@@ -10,7 +10,7 @@
             <h5 class="mb-0">{{ member.username }}</h5>
             <small class="text-muted">{{ member.email }}</small>
           </div>
-          <button class="btn btn-danger btn-sm" (click)="removeUserFromProject(member.id)">Remove</button>
+          <button class="btn btn-danger btn-sm" (click)="removeUserFromProject(member.id)" *ngIf="isUserManager()" >Remove</button>
         </div>
       </div>
     </div>
@@ -22,7 +22,7 @@
     </ng-template>
 
     <!-- Dugme za dodavanje člana -->
-  <button class="btn btn-primary mt-3" (click)="showAddUserForm = true">Add Member</button>
+  <button class="btn btn-primary mt-3" (click)="showAddUserForm = true" *ngIf="isUserManager()">Add Member</button>
 
   <!-- Forma za dodavanje člana -->
   <div *ngIf="showAddUserForm" class="mt-4">
