@@ -1,25 +1,21 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gocql/gocql"
 	"github.com/gorilla/handlers"
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-
 	"github.com/milly013/trello-project/back/notification-service/handler"
 	"github.com/milly013/trello-project/back/notification-service/repository"
 	"github.com/milly013/trello-project/back/notification-service/service"
 )
 
-var notificationCollection *mongo.Collection
+var session *gocql.Session
 
 func main() {
 	// Učitajte .env fajl
@@ -27,18 +23,14 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	// Povezivanje na MongoDB
-	client, err := connectToMongoDB()
+	var err error
+	session, err = connectToCassandra()
 	if err != nil {
-		log.Fatal("Error connecting to MongoDB:", err)
+		log.Fatal("Error connecting to Cassandra:", err)
 	}
-	defer client.Disconnect(context.TODO())
+	defer session.Close()
 
-	// Kreiramo instancu baze podataka
-	db := client.Database(os.Getenv("MONGODB_DATABASE"))
-	notificationCollection = db.Collection("notifications")
-
-	notificationRepo := repository.NewNotificationRepository(db)
+	notificationRepo := repository.NewNotificationRepository(session)
 	notificationService := service.NewNotificationService(notificationRepo)
 	notificationHandler := handler.NewNotificationHandler(notificationService)
 
@@ -71,33 +63,24 @@ func main() {
 	log.Fatal(srv.ListenAndServe())
 }
 
-// Funkcija za povezivanje na MongoDB
-func connectToMongoDB() (*mongo.Client, error) {
-	mongoURI := os.Getenv("MONGODB_URI")
-	dbName := os.Getenv("MONGODB_DATABASE")
-	if mongoURI == "" || dbName == "" {
-		log.Fatal("MongoDB URI or Database environment variable not set")
+// Funkcija za povezivanje na Cassandra bazu podataka
+func connectToCassandra() (*gocql.Session, error) {
+	cluster := gocql.NewCluster(os.Getenv("CASSANDRA_HOST"))
+	cluster.Keyspace = os.Getenv("CASSANDRA_KEYSPACE")
+	cluster.Consistency = gocql.Quorum
+	cluster.ConnectTimeout = 10 * time.Second
+
+	var session *gocql.Session
+	var err error
+	for i := 0; i < 5; i++ { // Pokušaj 5 puta
+		session, err = cluster.CreateSession()
+		if err == nil {
+			log.Printf("Connected to Cassandra keyspace %s!\n", cluster.Keyspace)
+			return session, nil
+		}
+		log.Printf("Failed to connect to Cassandra, retrying in 5 seconds... (%d/5)\n", i+1)
+		time.Sleep(5 * time.Second)
 	}
 
-	clientOptions := options.Client().ApplyURI(mongoURI)
-	client, err := mongo.NewClient(clientOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	err = client.Connect(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = client.Ping(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Printf("Connected to MongoDB database %s!\n", dbName)
-	return client, nil
+	return nil, err
 }

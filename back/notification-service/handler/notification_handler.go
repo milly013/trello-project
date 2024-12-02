@@ -7,7 +7,6 @@ import (
 	"github.com/milly013/trello-project/back/notification-service/service"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type NotificationHandler struct {
@@ -25,8 +24,7 @@ func (h *NotificationHandler) CreateNotification(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	err := h.service.CreateNotification(c.Request.Context(), &notification)
+	err := h.service.CreateNotification(&notification)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create notification"})
 		return
@@ -34,7 +32,8 @@ func (h *NotificationHandler) CreateNotification(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Notification created successfully"})
 }
 func (h *NotificationHandler) GetAllNotifications(c *gin.Context) {
-	notifications, err := h.service.GetAllNotifications(c.Request.Context())
+
+	notifications, err := h.service.GetAllNotifications()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve notifications"})
 		return
@@ -44,14 +43,9 @@ func (h *NotificationHandler) GetAllNotifications(c *gin.Context) {
 
 // Dohvatanje obaveštenja po korisničkom ID-ju
 func (h *NotificationHandler) GetNotificationsByUserID(c *gin.Context) {
-	userIDParam := c.Param("userID")
-	userID, err := primitive.ObjectIDFromHex(userIDParam)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
+	userID := c.Param("userID")
 
-	notifications, err := h.service.GetNotificationsByUserID(c.Request.Context(), userID)
+	notifications, err := h.service.GetNotificationsByUserID(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve notifications"})
 		return
@@ -61,14 +55,9 @@ func (h *NotificationHandler) GetNotificationsByUserID(c *gin.Context) {
 
 // Označavanje obaveštenja kao pročitanog
 func (h *NotificationHandler) MarkNotificationAsRead(c *gin.Context) {
-	notificationIDParam := c.Param("notificationID")
-	notificationID, err := primitive.ObjectIDFromHex(notificationIDParam)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification ID"})
-		return
-	}
+	notificationID := c.Param("notificationID")
 
-	err = h.service.MarkNotificationAsRead(c.Request.Context(), notificationID)
+	err := h.service.MarkNotificationAsRead(notificationID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to mark notification as read"})
 		return

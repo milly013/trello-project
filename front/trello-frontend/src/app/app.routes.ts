@@ -22,6 +22,8 @@ import { UserProfileComponent } from './user-profile/user-profile.component';
 import { ProjectUsersComponent } from './project-users/project-users.component';
 import { RequestMagicLinkComponent } from './request-magic-link/request-magic-link.component';
 import { MagicLoginComponent } from './magic-login/magic-login.component';
+import { UserNotificationsComponent } from './user-notifications/user-notifications.component';
+
 
 
 
@@ -50,8 +52,8 @@ export const appRoutes: Routes = [
   { path: 'user-profile',component: UserProfileComponent},
   { path: 'project-users/:projectId', component: ProjectUsersComponent},
   { path: 'request-magic-link', component: RequestMagicLinkComponent },
-  { path: 'magic-login', component: MagicLoginComponent }
-
+  { path: 'magic-login', component: MagicLoginComponent },
+  { path: 'notifications', component: UserNotificationsComponent}
 
 
 

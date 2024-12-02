@@ -1,12 +1,8 @@
 package service
 
 import (
-	"context"
-
 	"github.com/milly013/trello-project/back/notification-service/model"
 	"github.com/milly013/trello-project/back/notification-service/repository"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type NotificationService struct {
@@ -20,19 +16,19 @@ func NewNotificationService(repo *repository.NotificationRepository) *Notificati
 }
 
 // Kreiranje obaveštenja
-func (s *NotificationService) CreateNotification(ctx context.Context, notification *model.Notification) error {
-	return s.repo.CreateNotification(ctx, notification)
+func (s *NotificationService) CreateNotification(notification *model.Notification) error {
+	return s.repo.CreateNotification(notification)
 }
 
 // Dohvatanje obaveštenja po korisničkom ID-ju
-func (s *NotificationService) GetNotificationsByUserID(ctx context.Context, userID primitive.ObjectID) ([]model.Notification, error) {
-	return s.repo.GetNotificationsByUserID(ctx, userID)
+func (s *NotificationService) GetNotificationsByUserID(userID string) ([]model.Notification, error) {
+	return s.repo.GetNotificationsByUserID(userID)
 }
 
 // Označavanje obaveštenja kao pročitanog
-func (s *NotificationService) MarkNotificationAsRead(ctx context.Context, notificationID primitive.ObjectID) error {
-	return s.repo.MarkAsRead(ctx, notificationID)
+func (s *NotificationService) MarkNotificationAsRead(notificationID string) error {
+	return s.repo.MarkAsRead(notificationID)
 }
-func (s *NotificationService) GetAllNotifications(ctx context.Context) ([]model.Notification, error) {
-	return s.repo.GetAllNotifications(ctx)
+func (s *NotificationService) GetAllNotifications() ([]model.Notification, error) {
+	return s.repo.GetAllNotifications()
 }

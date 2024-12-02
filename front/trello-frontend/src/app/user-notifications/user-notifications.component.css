@@ -1,0 +1,15 @@
+.notifications {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    max-width: 600px;
+    margin: auto;
+  }
+  .notification {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 10px;
+  }
+  .notification:last-child {
+    border-bottom: none;
+  }

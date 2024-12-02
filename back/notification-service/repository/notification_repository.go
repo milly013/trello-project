@@ -1,67 +1,96 @@
 package repository
 
 import (
-	"context"
+	"fmt"
 	"time"
 
+	"github.com/gocql/gocql"
 	"github.com/milly013/trello-project/back/notification-service/model"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type NotificationRepository struct {
-	collection *mongo.Collection
+	session *gocql.Session
 }
 
-func NewNotificationRepository(db *mongo.Database) *NotificationRepository {
+func NewNotificationRepository(session *gocql.Session) *NotificationRepository {
 	return &NotificationRepository{
-		collection: db.Collection("notifications"),
+		session: session,
 	}
 }
 
 // Metoda za kreiranje obaveštenja
-func (r *NotificationRepository) CreateNotification(ctx context.Context, notification *model.Notification) error {
-	notification.ID = primitive.NewObjectID()
+func (r *NotificationRepository) CreateNotification(notification *model.Notification) error {
+	// Proveri i generiši novi UUID ako nije postavljen
+	if notification.ID == (gocql.UUID{}) {
+		newID, err := gocql.RandomUUID()
+		if err != nil {
+			return fmt.Errorf("failed to generate UUID: %w", err)
+		}
+		notification.ID = newID
+	}
+
+	// Proveri i postavi tip notifikacije ako nije dodeljen
+	if notification.Type == "" {
+		notification.Type = "added_to_project" // ili neki podrazumevani tip
+	}
+
 	notification.CreatedAt = time.Now()
-	_, err := r.collection.InsertOne(ctx, notification)
-	return err
+
+	query := `INSERT INTO notifications (id, user_id, type, message, created_at, is_read) VALUES (?, ?, ?, ?, ?, ?)`
+	err := r.session.Query(query,
+		notification.ID,
+		notification.UserID,
+		notification.Type,
+		notification.Message,
+		notification.CreatedAt,
+		notification.IsRead).Exec()
+
+	if err != nil {
+		return fmt.Errorf("failed to insert notification: %w", err)
+	}
+
+	return nil
 }
 
 // Metoda za dohvatanje obaveštenja po korisničkom ID-ju
-func (r *NotificationRepository) GetNotificationsByUserID(ctx context.Context, userID primitive.ObjectID) ([]model.Notification, error) {
-	filter := bson.M{"user_id": userID}
-	cursor, err := r.collection.Find(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
+func (r *NotificationRepository) GetNotificationsByUserID(userID string) ([]model.Notification, error) {
+	query := `SELECT id, user_id, type, message, created_at, is_read FROM notifications WHERE user_id = ? ALLOW FILTERING`
+	iter := r.session.Query(query, userID).Iter()
 
 	var notifications []model.Notification
-	if err = cursor.All(ctx, &notifications); err != nil {
-		return nil, err
+	var notification model.Notification
+
+	for iter.Scan(&notification.ID, &notification.UserID, &notification.Type, &notification.Message, &notification.CreatedAt, &notification.IsRead) {
+		notifications = append(notifications, notification)
 	}
+
+	if err := iter.Close(); err != nil {
+		return nil, fmt.Errorf("failed to retrieve notifications: %w", err)
+	}
+
 	return notifications, nil
 }
 
 // Označavanje obaveštenja kao pročitanog
-func (r *NotificationRepository) MarkAsRead(ctx context.Context, notificationID primitive.ObjectID) error {
-	filter := bson.M{"_id": notificationID}
-	update := bson.M{"$set": bson.M{"is_read": true}}
-	_, err := r.collection.UpdateOne(ctx, filter, update)
-	return err
+func (r *NotificationRepository) MarkAsRead(notificationID string) error {
+	query := `UPDATE notifications SET is_read = true WHERE id = ?`
+	return r.session.Query(query, notificationID).Exec()
 }
 
 // Metoda za dohvatanje svih obaveštenja
-func (r *NotificationRepository) GetAllNotifications(ctx context.Context) ([]model.Notification, error) {
-	cursor, err := r.collection.Find(ctx, bson.M{}) // Pražan filter vraća sve dokumente
-	if err != nil {
+func (r *NotificationRepository) GetAllNotifications() ([]model.Notification, error) {
+	query := `SELECT id, user_id, message, created_at, is_read FROM notifications`
+	iter := r.session.Query(query).Iter()
+
+	var notifications []model.Notification
+	var notification model.Notification
+	for iter.Scan(&notification.ID, &notification.UserID, &notification.Message, &notification.CreatedAt, &notification.IsRead) {
+		notifications = append(notifications, notification)
+	}
+
+	if err := iter.Close(); err != nil {
 		return nil, err
 	}
 
-	var notifications []model.Notification
-	if err = cursor.All(ctx, &notifications); err != nil {
-		return nil, err
-	}
 	return notifications, nil
 }

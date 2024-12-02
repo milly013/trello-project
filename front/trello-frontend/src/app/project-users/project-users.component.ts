@@ -26,16 +26,15 @@ export class ProjectUsersComponent implements OnInit{
     this.projectId = this.route.snapshot.paramMap.get('projectId');
     if (this.projectId) {
       this.loadProjectMembers();
-      // this.loadAvailableUsers();
+      this.loadAvailableUsers();
     }
   }
 
   loadProjectMembers(): void {
     this.userService.getUsersByProjectId(this.projectId!).subscribe({
       next: (data) => {
-        this.members = data;
-        this.loadAvailableUsers();
-        
+          this.members = data;
+          this.loadAvailableUsers();       
       },
       error: (error) => {
         console.error('Error fetching project members:', error);
@@ -47,13 +46,23 @@ export class ProjectUsersComponent implements OnInit{
     console.log(this.members)
     this.userService.getUsers().subscribe({
       next: (data) => {
-        
+        if (this.members.length > 0){
         this.availableUsers = data.filter(
           (user: any) =>
             user.role === 'member' && 
             !this.members.some((member) => member.id === user.id) ,
-            
         );
+      }
+      if (this.members.length === 0){
+        this.userService.getUsers().subscribe({
+          next: (data) => {
+              this.availableUsers = data.filter((user: any) => user.role === 'member');
+          },
+          error: (error) => {
+              console.error('Error fetching available users:', error);
+          },
+      });
+      }
       },
       error: (error) => {
         console.error('Error fetching available users:', error);

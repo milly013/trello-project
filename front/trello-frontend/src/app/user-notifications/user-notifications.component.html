@@ -1,0 +1,12 @@
+<div class="notifications">
+    <h2>Your Notifications</h2>
+    <div *ngIf="notifications.length > 0; else noNotifications">
+      <div *ngFor="let notification of notifications" class="notification">
+        <p><strong>{{ notification.type }}</strong>: {{ notification.message || 'No message available' }}</p>
+        <small>{{ notification.created_at ? (notification.created_at | date:'medium') : 'No date available' }}</small>
+      </div>
+    </div>
+    <ng-template #noNotifications>
+      <p>No notifications available.</p>
+    </ng-template>
+  </div>
