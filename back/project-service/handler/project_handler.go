@@ -197,3 +197,24 @@ func (h *ProjectHandler) RemoveMemberFromProject(c *gin.Context) {
 	// Vraćamo status 204 (No Content) kao potvrdu da je član uspešno uklonjen
 	c.JSON(http.StatusNoContent, nil)
 }
+
+// Handler method to check if a project has incomplete tasks
+func (h *ProjectHandler) HasIncompleteTasks(c *gin.Context) {
+	projectID := c.Param("projectID")
+	if projectID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "projectID is required"})
+		return
+	}
+
+	hasIncompleteTasks, err := h.service.HasIncompleteTasks(c.Request.Context(), projectID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if hasIncompleteTasks {
+		c.JSON(http.StatusOK, gin.H{"status": "Active", "hasIncompleteTasks": true})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"status": "Inactive", "hasIncompleteTasks": false})
+	}
+}

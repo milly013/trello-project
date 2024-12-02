@@ -271,3 +271,39 @@ func (h *TaskHandler) GetUsersByTaskId(c *gin.Context) {
 
 	c.JSON(http.StatusOK, users)
 }
+func (h *TaskHandler) GetTaskStatus(c *gin.Context) {
+	taskID := c.Param("taskID")
+	if taskID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "taskID is required"})
+		return
+	}
+
+	status, err := h.service.GetTaskStatus(c.Request.Context(), taskID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if status == "" {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": status})
+}
+
+// Handler method to check if there are incomplete tasks for a given project
+func (h *TaskHandler) HasIncompleteTasksByProject(c *gin.Context) {
+	projectID := c.Param("projectID")
+	if projectID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "projectID is required"})
+		return
+	}
+
+	hasIncompleteTasks, err := h.service.HasIncompleteTasksByProject(c.Request.Context(), projectID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"hasIncompleteTasks": hasIncompleteTasks})
+}

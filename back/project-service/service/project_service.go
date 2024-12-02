@@ -62,6 +62,57 @@ func (s *ProjectService) GetProjectsByMember(ctx context.Context, memberId strin
 func (s *ProjectService) GetTaskIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
 	return s.repo.GetTaskIDsByProject(ctx, projectId)
 }
+
+// Method to check if there are incomplete tasks in a project
+func (s *ProjectService) HasIncompleteTasks(ctx context.Context, projectID string) (bool, error) {
+	// Call task-service through API Gateway to get task statuses
+	url := fmt.Sprintf("http://api-gateway:8000/api/task/tasks/project/%s/status", projectID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return false, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("failed to get task statuses, received status code: %d", resp.StatusCode)
+	}
+
+	var response struct {
+		HasIncompleteTasks bool `json:"hasIncompleteTasks"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return false, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	// Update project status based on tasks completion
+	project, err := s.repo.GetProjectById(ctx, projectID)
+	if err != nil {
+		return false, fmt.Errorf("failed to get project by ID: %w", err)
+	}
+	if project == nil {
+		return false, fmt.Errorf("project not found")
+	}
+
+	if response.HasIncompleteTasks {
+		project.IsActive = true
+	} else {
+		project.IsActive = false
+	}
+
+	if err := s.repo.UpdateProject(ctx, project); err != nil {
+		return false, fmt.Errorf("failed to update project status: %w", err)
+	}
+
+	return response.HasIncompleteTasks, nil
+}
+
 func (s *ProjectService) GetUsersByProjectId(ctx context.Context, projectId string) ([]userModel.User, error) {
 	url := "http://api-gateway:8000/api/user/users/getByIds"
 
@@ -144,6 +195,14 @@ func (s *ProjectService) UserExists(ctx context.Context, memberId primitive.Obje
 }
 
 func (s *ProjectService) AddMemberToProject(ctx context.Context, projectId string, memberId primitive.ObjectID) error {
+	// Check if the project is active
+	hasIncompleteTasks, err := s.HasIncompleteTasks(ctx, projectId)
+	if err != nil {
+		return fmt.Errorf("failed to check if project has incomplete tasks: %w", err)
+	}
+	if !hasIncompleteTasks {
+		return fmt.Errorf("cannot add member to an inactive project")
+	}
 
 	exists, err := s.UserExists(ctx, memberId)
 	if err != nil {

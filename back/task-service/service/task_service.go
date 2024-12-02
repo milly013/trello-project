@@ -281,6 +281,34 @@ func (s *TaskService) getUsersByIDs(ctx context.Context, userIDs []primitive.Obj
 	return users, nil
 }
 
+func (s *TaskService) GetTaskStatus(ctx context.Context, taskID string) (string, error) {
+	task, err := s.GetTaskById(ctx, taskID)
+	if err != nil {
+		return "", err
+	}
+	if task == nil {
+		return "", nil
+	}
+
+	return task.Status, nil
+}
+
+// Method to check if there are incomplete tasks for a given project
+func (s *TaskService) HasIncompleteTasksByProject(ctx context.Context, projectID string) (bool, error) {
+	tasks, err := s.GetTasksByProject(ctx, projectID)
+	if err != nil {
+		return false, fmt.Errorf("failed to get tasks for project: %w", err)
+	}
+
+	for _, task := range tasks {
+		if task.Status != "Completed" {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 //==========Validacije=========================
 
 func sanitizeInput(input string) string {

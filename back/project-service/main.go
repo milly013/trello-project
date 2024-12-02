@@ -55,6 +55,7 @@ func main() {
 	router.GET("/projects/manager/:managerId", projectHandler.GetProjectsByManager)
 	router.GET("/projects/member/:memberId", projectHandler.GetProjectsByMember)
 	router.GET("/users/:projectId", projectHandler.GetUsersByProjectId)
+	router.GET("/projects/status/:projectID", projectHandler.HasIncompleteTasks)
 
 	// Konfiguracija CORS-a
 	corsHandler := handlers.CORS(
