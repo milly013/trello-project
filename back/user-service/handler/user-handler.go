@@ -55,47 +55,54 @@ func sendVerificationEmail(toEmail, verificationCode string) error {
 
 // Handler za dodavanje novog korisnika uz proveru postojanja i slanje verifikacionog koda
 func (h *UserHandler) CreateUser(c *gin.Context) {
-    var user model.User
-    if err := c.ShouldBindJSON(&user); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
+	var user model.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-    // Provera da li lozinka pripada crnoj listi
-    if service.IsPasswordBlacklisted(user.Password) {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Lozinka koju ste uneli je previše slaba. Molimo vas koristite jaču lozinku."})
-        return
-    }
+	// Provera da li lozinka pripada crnoj listi
+	if service.IsPasswordBlacklisted(user.Password) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Lozinka koju ste uneli je previše slaba. Molimo vas koristite jaču lozinku."})
+		return
+	}
 
-    // Provera da li korisnik već postoji
-    exists, err := h.repo.CheckUserExists(c, user.Username, user.Email)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
+	// Provera da li korisnik već postoji
+	exists, err := h.repo.CheckUserExists(c, user.Username, user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-    if exists {
-        c.JSON(http.StatusConflict, gin.H{"error": "Korisnik sa zadatim korisničkim imenom ili email-om već postoji"})
-        return
-    }
+	if exists {
+		c.JSON(http.StatusConflict, gin.H{"error": "Korisnik sa zadatim korisničkim imenom ili email-om već postoji"})
+		return
+	}
 
-    // Heširanje lozinke
-    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Greška prilikom heširanja lozinke"})
-        return
-    }
-    user.Password = string(hashedPassword)
+	// Heširanje lozinke
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Greška prilikom heširanja lozinke"})
+		return
+	}
+	user.Password = string(hashedPassword)
 
-    // Čuvanje korisnika
-    err = h.repo.CreateUser(c, user)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Greška prilikom kreiranja korisnika"})
-        return
-    }
+	// Generisanje verifikacionog koda
+	verificationCode := generateVerificationCode()
 
-    c.JSON(http.StatusCreated, gin.H{"message": "Korisnik uspešno kreiran"})
+	// Slanje koda putem e-pošte
+	err = sendVerificationEmail(user.Email, verificationCode)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send verification code"})
+		return
+	}
+
+	// Čuvanje verifikacionog koda
+	h.repo.SaveVerificationCode(c, user, verificationCode)
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Korisnik uspešno kreiran"})
 }
+
 // Handler za verifikaciju koda
 func (h *UserHandler) VerifyCode(c *gin.Context) {
 	var req struct {
@@ -410,103 +417,101 @@ var jwtSecret = []byte("tvoja-tajna")
 
 // Handler za slanje magic link-a korisniku
 func (h *UserHandler) RequestMagicLinkHandler(c *gin.Context) {
-    var req struct {
-        Email string `json:"email" binding:"required"`
-    }
+	var req struct {
+		Email string `json:"email" binding:"required"`
+	}
 
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
-        return
-    }
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
+		return
+	}
 
-    // Provera da li korisnik postoji
-    user, err := h.repo.GetUserByEmail(c.Request.Context(), req.Email)
-    if err != nil {
-        if err == mongo.ErrNoDocuments {
-            c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-            return
-        }
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finding user"})
-        return
-    }
+	// Provera da li korisnik postoji
+	user, err := h.repo.GetUserByEmail(c.Request.Context(), req.Email)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finding user"})
+		return
+	}
 
-    // Generisanje JWT tokena sa istekon od 15 minuta
-    expirationTime := time.Now().Add(15 * time.Minute)
-    claims := jwt.MapClaims{
-        "email": user.Email,
-        "exp":   expirationTime.Unix(),
-    }
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    tokenString, err := token.SignedString(jwtSecret)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
-        return
-    }
+	// Generisanje JWT tokena sa istekon od 15 minuta
+	expirationTime := time.Now().Add(15 * time.Minute)
+	claims := jwt.MapClaims{
+		"email": user.Email,
+		"exp":   expirationTime.Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
+		return
+	}
 
-    // Kreiraj magic link
-    magicLink := fmt.Sprintf("http://localhost:4200/magic-login?token=%s", tokenString)
+	// Kreiraj magic link
+	magicLink := fmt.Sprintf("http://localhost:4200/magic-login?token=%s", tokenString)
 
-    // Pošalji magic link putem email-a
-    err = sendVerificationEmail(user.Email, magicLink)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send magic link"})
-        return
-    }
+	// Pošalji magic link putem email-a
+	err = sendVerificationEmail(user.Email, magicLink)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send magic link"})
+		return
+	}
 
-    c.JSON(http.StatusOK, gin.H{"message": "Magic link sent successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Magic link sent successfully"})
 }
 
 // Handler za verifikaciju magic link tokena i prijavu korisnika
 func (h *UserHandler) MagicLoginHandler(c *gin.Context) {
-    var req struct {
-        Token string `json:"token" binding:"required"`
-    }
+	var req struct {
+		Token string `json:"token" binding:"required"`
+	}
 
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Token is required"})
-        return
-    }
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is required"})
+		return
+	}
 
-    // Parsiraj i validiraj JWT token
-    token, err := jwt.Parse(req.Token, func(token *jwt.Token) (interface{}, error) {
-        if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-            return nil, fmt.Errorf("unexpected signing method")
-        }
-        return jwtSecret, nil
-    })
+	// Parsiraj i validiraj JWT token
+	token, err := jwt.Parse(req.Token, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return jwtSecret, nil
+	})
 
-    if err != nil {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-        return
-    }
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
 
-    claims, ok := token.Claims.(jwt.MapClaims)
-    if !ok || !token.Valid {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-        return
-    }
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
 
-    // Proveri email iz tokena
-    email := claims["email"].(string)
-    user, err := h.repo.GetUserByEmail(context.Background(), email)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user data"})
-        return
-    }
+	// Proveri email iz tokena
+	email := claims["email"].(string)
+	user, err := h.repo.GetUserByEmail(context.Background(), email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user data"})
+		return
+	}
 
-    // Generiši JWT token za prijavu korisnika
-    loginToken, err := h.jwtService.GenerateJWT(user.ID.Hex(), user.Email)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating login token"})
-        return
-    }
+	// Generiši JWT token za prijavu korisnika
+	loginToken, err := h.jwtService.GenerateJWT(user.ID.Hex(), user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating login token"})
+		return
+	}
 
-    // Vrati login token korisniku
-    c.JSON(http.StatusOK, gin.H{
-        "token":    loginToken,
-        "userId":   user.ID.Hex(),
-        "userRole": user.Role,
-    })
+	// Vrati login token korisniku
+	c.JSON(http.StatusOK, gin.H{
+		"token":    loginToken,
+		"userId":   user.ID.Hex(),
+		"userRole": user.Role,
+	})
 }
-
-
