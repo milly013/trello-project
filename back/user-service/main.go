@@ -29,8 +29,8 @@ func main() {
 	}
 
 	// Učitavanje crne liste lozinki
-    service.LoadBlacklistedPasswords("blacklist_passwords.txt") // Dodaj ovo da učitaš crnu listu lozinki
-	
+	service.LoadBlacklistedPasswords("blacklist_passwords.txt")
+
 	// Povezivanje na MongoDB
 	client, err := connectToMongoDB()
 	if err != nil {
