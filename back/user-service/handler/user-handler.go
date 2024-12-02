@@ -91,12 +91,18 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 	user.Password = string(hashedPassword)
 
-	// Čuvanje korisnika
-	err = h.repo.CreateUser(c, user)
+	// Generisanje verifikacionog koda
+	verificationCode := generateVerificationCode()
+
+	// Slanje koda putem e-pošte
+	err = sendVerificationEmail(user.Email, verificationCode)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Greška prilikom kreiranja korisnika"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send verification code"})
 		return
 	}
+
+	// Čuvanje verifikacionog koda
+	h.repo.SaveVerificationCode(c, user, verificationCode)
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Korisnik uspešno kreiran"})
 }
