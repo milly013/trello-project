@@ -12,6 +12,7 @@ import (
 
 	"github.com/milly013/trello-project/back/project-service/model"
 	"github.com/milly013/trello-project/back/project-service/repository"
+	taskModel "github.com/milly013/trello-project/back/task-service/model"
 	userModel "github.com/milly013/trello-project/back/user-service/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -232,7 +233,7 @@ func (s *ProjectService) AddMemberToProject(ctx context.Context, projectId strin
 }
 
 func (s *ProjectService) TaskExists(ctx context.Context, taskId primitive.ObjectID) (bool, error) {
-	url := fmt.Sprintf("http://localhost:8080/tasks/%s", taskId.Hex())
+	url := fmt.Sprintf("http://api-gateway:8000/api/task/tasks/%s", taskId.Hex())
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Get(url)
@@ -293,16 +294,53 @@ func (s *ProjectService) RemoveMemberFromProject(ctx context.Context, projectId 
 	// Proveri da li član postoji u projektu
 	for i, id := range project.MemberIDs {
 		if id == memberId {
+			// Proveri da li je član dodeljen nekom zadatku sa statusom "in progress"
+			for _, taskID := range project.TaskIDs {
+				taskExists, err := s.TaskExists(ctx, taskID)
+				if err != nil {
+					return fmt.Errorf("failed to check task existence: %w", err)
+				}
+				if taskExists {
+					url := fmt.Sprintf("http://api-gateway:8000/api/task/%s", taskID.Hex())
+					req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+					if err != nil {
+						return fmt.Errorf("failed to create request: %w", err)
+					}
+					client := &http.Client{Timeout: 5 * time.Second}
+					resp, err := client.Do(req)
+					if err != nil {
+						return fmt.Errorf("failed to send request: %w", err)
+					}
+					defer resp.Body.Close()
+					if resp.StatusCode != http.StatusOK {
+						return fmt.Errorf("failed to get task, received status code: %d", resp.StatusCode)
+					}
+					var task taskModel.Task
+					if err := json.NewDecoder(resp.Body).Decode(&task); err != nil {
+						return fmt.Errorf("failed to decode response: %w", err)
+					}
+					if task.Status == "Pending" && contains(task.AssignedTo, memberId) {
+						return fmt.Errorf("cannot remove member assigned to a task in progress")
+					}
+				}
+			}
+
 			// Ukloni člana
 			project.MemberIDs = append(project.MemberIDs[:i], project.MemberIDs[i+1:]...)
-
-			log.Println("adsadsadsadsads")
-
 			return s.repo.UpdateProject(ctx, project)
 		}
 	}
 
 	return fmt.Errorf("member not found in project")
+}
+
+func contains(ids []primitive.ObjectID, id primitive.ObjectID) bool {
+	for _, assignedID := range ids {
+		if assignedID == id {
+			return true
+		}
+	}
+	return false
 }
 
 //===============Validacije=====================

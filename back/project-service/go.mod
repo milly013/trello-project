@@ -2,18 +2,13 @@ module github.com/milly013/trello-project/back/project-service
 
 go 1.20
 
-
-
 require (
 	github.com/gin-gonic/gin v1.10.0
+	github.com/milly013/trello-project/back/task-service v0.0.0-20241124220942-1678267b5c4d
 	go.mongodb.org/mongo-driver v1.17.1
 )
 
-require (
-	github.com/kr/pretty v0.3.1 // indirect
-	github.com/rogpeppe/go-internal v1.13.1 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-)
+require github.com/kr/text v0.2.0 // indirect
 
 require (
 	github.com/felixge/httpsnoop v1.0.3 // indirect
