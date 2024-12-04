@@ -4,18 +4,21 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../service/auth.service';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeValue } from '@angular/platform-browser'; // Import DomSanitizer
+import { RECAPTCHA_SETTINGS, RecaptchaModule, RecaptchaSettings } from 'ng-recaptcha';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  imports: [ReactiveFormsModule, CommonModule, FormsModule,RouterLink]
+  imports: [ReactiveFormsModule, CommonModule, FormsModule,RouterLink,RecaptchaModule]
 })
 export class LoginComponent {
   loginForm: FormGroup;
   isSubmitting = false;
   errorMessage: string | null = null;
+  siteKey = '6Leoc5EqAAAAAHf_zqSb1gRl6q3YEgigsnVkwZ7I';
+
 
   constructor(
     private fb: FormBuilder,
@@ -25,7 +28,8 @@ export class LoginComponent {
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      recaptcha: [null, Validators.required] // Add reCAPTCHA form control
     });
   }
 
@@ -41,14 +45,15 @@ export class LoginComponent {
     // Sanitizacija unosa korisnika kako bi se izbjegao XSS napad
     const sanitizedLoginData = {
       email: this.sanitizeInput(formData.email),
-      password: this.sanitizeInput(formData.password)
+      password: this.sanitizeInput(formData.password),
+      recaptchaToken: formData.recaptcha // Send reCAPTCHA token to backend
     };
 
     console.log("Form is valid, attempting login");
     this.isSubmitting = true;
     this.errorMessage = null;
 
-    this.authService.login(sanitizedLoginData.email, sanitizedLoginData.password).subscribe({
+    this.authService.login(sanitizedLoginData.email, sanitizedLoginData.password, sanitizedLoginData.recaptchaToken).subscribe({
       next: (response) => {
         // Čuvanje JWT tokena u local storage
         console.log("Login successful, saving token");
@@ -63,7 +68,6 @@ export class LoginComponent {
       }
     });
   }
-
   sanitizeInput(input: string): string {
     // Escape-ovanje opasnih znakova kako bi se spriječili XSS napadi
     const element: HTMLElement = document.createElement('div');
@@ -74,4 +78,10 @@ export class LoginComponent {
   get f() {
     return this.loginForm.controls;
   }
+
+
+  resolved(captchaResponse: string | null): void {
+    this.loginForm.patchValue({ recaptcha: captchaResponse });
+  }
+  
 }

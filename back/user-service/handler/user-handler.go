@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
@@ -236,13 +237,20 @@ func (h *UserHandler) VerifyUser(c *gin.Context) {
 
 func (h *UserHandler) Login(c *gin.Context) {
 	var req struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email          string `json:"email"`
+		Password       string `json:"password"`
+		RecaptchaToken string `json:"recaptchaToken"` // Add recaptchaToken to the request body
 	}
 
 	// Decode JSON iz zahteva
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	// Verify CAPTCHA token
+	if !h.verifyCaptcha(req.RecaptchaToken) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid captcha"})
 		return
 	}
 
@@ -275,6 +283,29 @@ func (h *UserHandler) Login(c *gin.Context) {
 		"userId":   user.ID.Hex(),
 		"userRole": user.Role,
 	})
+}
+
+func (h *UserHandler) verifyCaptcha(token string) bool {
+	secret := "6Leoc5EqAAAAAGYiaWSHIhRUWPST2E4UVk2rA8OJ"
+	url := fmt.Sprintf("https://www.google.com/recaptcha/api/siteverify?secret=%s&response=%s", secret, token)
+
+	resp, err := http.Post(url, "application/json", nil)
+	if err != nil {
+		fmt.Printf("Failed to verify captcha: %v\n", err)
+		return false
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Success bool `json:"success"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		fmt.Printf("Failed to decode captcha response: %v\n", err)
+		return false
+	}
+
+	return result.Success
 }
 
 // Handler za forgot password

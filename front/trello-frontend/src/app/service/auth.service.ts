@@ -22,10 +22,10 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password });
+  login(email: string, password: string, recaptchaToken: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password, recaptchaToken });
   }
-
+  
   // Funkcija za proveru da li je korisnik prijavljen
   isAuthenticated(): boolean {
     return !!localStorage.getItem('authToken');
