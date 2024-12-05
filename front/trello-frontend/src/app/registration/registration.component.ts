@@ -40,7 +40,7 @@ export class RegistrationComponent {
       role: formData.isManager ? 'manager' : 'member'
     };
 
-    this.http.post('http://localhost:8000/api/user/users', sanitizedUser)
+    this.http.post('https://localhost/api/user/users', sanitizedUser)
       .subscribe({
         next: (response) => {
           console.log('Korisnik je uspešno registrovan', response);

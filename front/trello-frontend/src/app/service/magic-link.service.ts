@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class MagicLinkService {
-  private apiUrl = 'http://localhost:8000/api/user/users'; // URL backend API-ja
+  private apiUrl = 'https://localhost/api/user/users'; // URL backend API-ja
 
   constructor(private http: HttpClient) {}
 

@@ -4,9 +4,6 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {jwtDecode} from 'jwt-decode';
 
-
-
-
 interface LoginResponse {
   token: string;
   userId: string;
@@ -17,7 +14,7 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8000/api/user/users'; 
+  private apiUrl = 'https://localhost/api/user/users'; 
   private tokenKey = 'authToken';
 
   constructor(private http: HttpClient) {}

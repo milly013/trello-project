@@ -16,7 +16,7 @@ export interface User {
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8000/api/user/users'; 
+  private apiUrl = 'https://localhost/api/user/users'; 
 
   constructor(private http: HttpClient, private authService: AuthService, private projectService: ProjectService) {}
 
@@ -67,13 +67,7 @@ export class UserService {
 
     return this.http.post<any>(`${this.apiUrl}/verify`, body, { headers });
   }
-
   
-
-
-  
-
-
   forgotPassword(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/forgot-password`, { email });
   }

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/handlers"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -29,8 +28,8 @@ func main() {
 	}
 
 	// Učitavanje crne liste lozinki
-    service.LoadBlacklistedPasswords("blacklist_passwords.txt") // Dodaj ovo da učitaš crnu listu lozinki
-	
+	service.LoadBlacklistedPasswords("blacklist_passwords.txt") // Dodaj ovo da učitaš crnu listu lozinki
+
 	// Povezivanje na MongoDB
 	client, err := connectToMongoDB()
 	if err != nil {
@@ -77,11 +76,11 @@ func main() {
 	}
 
 	// Konfiguracija CORS-a
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{os.Getenv("CORS_ALLOWED_ORIGINS")}),
-		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-	)
+	// corsHandler := handlers.CORS(
+	// 	handlers.AllowedOrigins([]string{os.Getenv("CORS_ALLOWED_ORIGINS")}),
+	// 	handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE"}),
+	// 	handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+	// )
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -89,7 +88,7 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Handler: corsHandler(router),
+		Handler: router,
 		Addr:    ":" + port,
 	}
 
