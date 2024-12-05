@@ -56,20 +56,33 @@ func sendVerificationEmail(toEmail, verificationCode string) error {
 
 // Handler za dodavanje novog korisnika uz proveru postojanja i slanje verifikacionog koda
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	var user model.User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req struct {
+		Username       string `json:"username"`
+		Email          string `json:"email"`
+		Password       string `json:"password"`
+		Role           string `json:"role"`
+		RecaptchaToken string `json:"recaptchaToken"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// Verifikacija CAPTCHA tokena
+	if !h.verifyCaptcha(req.RecaptchaToken) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid captcha"})
 		return
 	}
 
 	// Provera da li lozinka pripada crnoj listi
-	if service.IsPasswordBlacklisted(user.Password) {
+	if service.IsPasswordBlacklisted(req.Password) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Lozinka koju ste uneli je previše slaba. Molimo vas koristite jaču lozinku."})
 		return
 	}
 
 	// Provera da li korisnik već postoji
-	exists, err := h.repo.CheckUserExists(c, user.Username, user.Email)
+	exists, err := h.repo.CheckUserExists(c, req.Username, req.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -81,12 +94,18 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 
 	// Heširanje lozinke
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Greška prilikom heširanja lozinke"})
 		return
 	}
-	user.Password = string(hashedPassword)
+
+	user := model.User{
+		Username: req.Username,
+		Email:    req.Email,
+		Password: string(hashedPassword),
+		Role:     req.Role,
+	}
 
 	// Generisanje verifikacionog koda
 	verificationCode := generateVerificationCode()

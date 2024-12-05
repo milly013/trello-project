@@ -21,6 +21,13 @@
                     <input type="checkbox" class="form-check-input" id="isManager" formControlName="isManager">
                     <label class="form-check-label" for="isManager">Register as Manager</label>
                 </div>
+                <div class="form-group">
+                    <re-captcha
+                      formControlName="recaptcha"
+                      [siteKey]="siteKey"
+                      (resolved)="resolved($event)"
+                    ></re-captcha>
+                  </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 10px !important;">Register</button>
             </form>
         </div>
