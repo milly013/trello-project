@@ -100,7 +100,7 @@ func (s *ProjectService) HasIncompleteTasks(ctx context.Context, projectID strin
 		return false, fmt.Errorf("project not found")
 	}
 
-	if response.HasIncompleteTasks {
+	if response.HasIncompleteTasks || len(project.TaskIDs) == 0 {
 		project.IsActive = true
 	} else {
 		project.IsActive = false
@@ -195,38 +195,40 @@ func (s *ProjectService) UserExists(ctx context.Context, memberId primitive.Obje
 }
 
 func (s *ProjectService) AddMemberToProject(ctx context.Context, projectId string, memberId primitive.ObjectID) error {
-	// Check if the project is active
-	hasIncompleteTasks, err := s.HasIncompleteTasks(ctx, projectId)
-	if err != nil {
-		return fmt.Errorf("failed to check if project has incomplete tasks: %w", err)
-	}
-	if !hasIncompleteTasks {
-		return fmt.Errorf("cannot add member to an inactive project")
-	}
-
-	exists, err := s.UserExists(ctx, memberId)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("user does not exist")
-	}
-
 	project, err := s.repo.GetProjectById(ctx, projectId)
 	if err != nil {
 		return err
 	}
 
-	if len(project.MemberIDs) >= project.MaxMembers {
-		return fmt.Errorf("maximum number of members reached")
-	}
+	if len(project.TaskIDs) != 0 {
+		// Check if the project is active
+		hasIncompleteTasks, err := s.HasIncompleteTasks(ctx, projectId)
+		if err != nil {
+			return fmt.Errorf("failed to check if project has incomplete tasks: %w", err)
+		}
+		if !hasIncompleteTasks {
+			return fmt.Errorf("cannot add member to an inactive project")
+		}
 
-	for _, id := range project.MemberIDs {
-		if id == memberId {
-			return fmt.Errorf("member already exists in project")
+	} else {
+		exists, err := s.UserExists(ctx, memberId)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return fmt.Errorf("user does not exist")
+		}
+
+		if len(project.MemberIDs) >= project.MaxMembers {
+			return fmt.Errorf("maximum number of members reached")
+		}
+
+		for _, id := range project.MemberIDs {
+			if id == memberId {
+				return fmt.Errorf("member already exists in project")
+			}
 		}
 	}
-
 	project.MemberIDs = append(project.MemberIDs, memberId)
 	return s.repo.UpdateProject(ctx, project)
 }

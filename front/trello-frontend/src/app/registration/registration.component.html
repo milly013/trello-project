@@ -1,7 +1,7 @@
-<div class="container mt-5" style="margin-top: 110px !important">
-    <div class="card shadow-lg">
-        <div class="card-header text-white bg-primary">
-            <h2 class="mb-0">Registration</h2>
+<div class="col-xs-6" style="margin-top: 110px !important; text-align: -webkit-center;">
+    <div class="row">
+        <div>
+            <h1>Registration</h1>
         </div>
         <div class="card-body">
             <form (ngSubmit)="register()" [formGroup]="registrationForm">
@@ -17,7 +17,7 @@
                     <label for="password">Password</label>
                     <input type="password" class="form-control" id="password" formControlName="password" required>
                 </div>
-                <div class="form-check">
+                <div class="form-check" style="text-align: left;">
                     <input type="checkbox" class="form-check-input" id="isManager" formControlName="isManager">
                     <label class="form-check-label" for="isManager">Register as Manager</label>
                 </div>
