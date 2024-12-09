@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TaskService } from '../service/task.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { threadId } from 'worker_threads';
 
 @Component({
   selector: 'app-task-status',
@@ -11,13 +13,18 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
   providers: [TaskService]
 })
 export class TaskStatusComponent {
-  taskId: string = '';
+  taskId!: string;
   newStatus: string = 'pending';
 
-  constructor(private taskService: TaskService) {}
+  constructor(private taskService: TaskService,private route: ActivatedRoute,) {}
 
   updateTaskStatus() {
+    this.route.paramMap.subscribe(params=> {
+      this.taskId = params.get('id') || '';
+      console.log(this.taskId)
+    })
     if (this.taskId && this.newStatus) {
+      
       this.taskService.updateTaskStatus(this.taskId, this.newStatus).subscribe(
         response => {
           alert('Task status successfully updated');

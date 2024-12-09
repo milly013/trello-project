@@ -1,12 +1,12 @@
 <div class="container mt-4">
-    <h2>Korisnici za zadatak</h2>
+    <h2>Task members</h2>
     <table class="table" *ngIf="users.length > 0">
       <thead>
         <tr>
-          <th>Ime</th>
+          <th>Name</th>
           <th>Email</th>
-          <th>Uloga</th>
-          <th>Akcije</th>
+          <th>Role</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -20,15 +20,15 @@
         </tr>
       </tbody>
     </table>
-    <p *ngIf="users.length === 0">Nema korisnika za ovaj zadatak.</p>
+    <p *ngIf="users.length === 0">No users for this task.</p>
        <!-- Dugme za dodavanje korisnika -->
       <button class="btn btn-primary mt-3" (click)="showAddUserForm = true" *ngIf="isUserManager()">Add User to Task</button>
 
       <!-- Forma za dodavanje korisnika -->
   <div *ngIf="showAddUserForm" class="mt-4">
-    <h4>Dodaj korisnika na zadatak</h4>
+    <h4>Add user to task</h4>
     <div class="form-group">
-      <label for="userSelect">Odaberi korisnika:</label>
+      <label for="userSelect">Choose user:</label>
       <select class="form-control" id="userSelect" [(ngModel)]="selectedUserId">
         <option *ngFor="let user of projectUsers" [value]="user.id">{{ user.username }}</option>
       </select>

@@ -3,19 +3,19 @@
 <div class="container mt-5" style="margin-top: 110px !important">
     <div class="card shadow-lg">
         <div class="card-header text-white bg-primary">
-            <h2 class="mb-0">Dodaj Korisnika u Projekat</h2>
+            <h2 class="mb-0">Add member to project</h2>
         </div>
         <div class="card-body">
             <form (ngSubmit)="addUserToProject()" [formGroup]="userProjectForm" class="p-3 border rounded bg-light">
                 <div class="mb-3">
-                    <label for="projectId" class="form-label">ID Projekta:</label>
+                    <label for="projectId" class="form-label">Project ID:</label>
                     <input type="text" id="projectId" formControlName="projectId" required class="form-control">
                 </div>
                 <div class="mb-3">
-                    <label for="userId" class="form-label">ID Korisnika:</label>
+                    <label for="userId" class="form-label">User ID:</label>
                     <input type="text" id="userId" formControlName="userId" required class="form-control">
                 </div>
-                <button type="submit" class="btn btn-primary">Dodaj korisnika</button>
+                <button type="submit" class="btn btn-primary">Add member</button>
             </form>
         </div>
     </div>

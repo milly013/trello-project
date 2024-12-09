@@ -1,5 +1,5 @@
 <div class="container mt-4">
-    <h2 class="mb-4 text-center">Korisnici projekta</h2>
+    <h2 class="mb-4 text-center">Project members</h2>
     
     <div *ngIf="members.length > 0; else noMembers">
       <div class="list-group">
@@ -17,7 +17,7 @@
   
     <ng-template #noMembers>
       <div class="alert alert-warning text-center" role="alert">
-        <strong>Nema korisnika u ovom projektu.</strong>
+        <strong>No users for this project.</strong>
       </div>
     </ng-template>
 
@@ -26,9 +26,9 @@
 
   <!-- Forma za dodavanje člana -->
   <div *ngIf="showAddUserForm" class="mt-4">
-    <h4>Dodaj korisnika na projekat</h4>
+    <h4>Add user to project</h4>
     <div class="form-group">
-      <label for="userSelect">Odaberi korisnika:</label>
+      <label for="userSelect">Choose user:</label>
       <select class="form-control" id="userSelect" [(ngModel)]="selectedUserId">
         <option *ngFor="let user of availableUsers" [value]="user.id">{{ user.username }}</option>
       </select>

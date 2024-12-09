@@ -29,7 +29,6 @@ export class AddTaskComponent implements OnInit {
       description: ['', Validators.required],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
-      assignedTo: [[]],
       status: ['Pending', Validators.required],
       projectId: ['', Validators.required]
     });

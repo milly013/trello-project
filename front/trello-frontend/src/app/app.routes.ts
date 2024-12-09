@@ -41,7 +41,7 @@ export const appRoutes: Routes = [
   { path: 'user-list', component: UserListComponent},
   { path: 'home-page/login', component: LoginComponent},
   { path: 'project-details/:id', component: ProjectDetailsComponent },
-  { path: 'task-status',component:TaskStatusComponent},
+  { path: 'task-status/:id',component:TaskStatusComponent},
   { path: 'home-page/login', component: LoginComponent},
   { path: 'project-details/:id', component: ProjectDetailsComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
