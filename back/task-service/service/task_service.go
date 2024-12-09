@@ -60,7 +60,7 @@ func (s *TaskService) AddTask(ctx context.Context, task *model.Task) error {
 	return nil
 }
 func (s *TaskService) addTaskToProject(ctx context.Context, projectID, taskID primitive.ObjectID) error {
-	url := fmt.Sprintf("http://api-gateway:8000/api/project/projects/%s/tasks", projectID.Hex())
+	url := fmt.Sprintf("http://project-service:8081/projects/%s/tasks", projectID.Hex())
 
 	requestBody, err := json.Marshal(map[string]string{
 		"taskId": taskID.Hex(),
@@ -109,7 +109,7 @@ func (s *TaskService) UpdateTask(ctx context.Context, task *model.Task) error {
 	return s.taskRepo.UpdateTask(ctx, task)
 }
 func (s *TaskService) GetTaskIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
-	url := fmt.Sprintf("http://api-gateway:8000/api/project/projects/%s/tasks", projectId)
+	url := fmt.Sprintf("http://project-service:8081/projects/%s/tasks", projectId)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -248,7 +248,7 @@ func (s *TaskService) getUsersByIDs(ctx context.Context, userIDs []primitive.Obj
 	}
 
 	// Kreiramo URL za pozivanje `user-service`
-	url := fmt.Sprintf("http://api-gateway:8000/api/user/users/getByIds")
+	url := fmt.Sprintf("http://user-service:8080/users/getByIds")
 	requestBody, err := json.Marshal(map[string][]string{
 		"userIds": userIDStrings,
 	})

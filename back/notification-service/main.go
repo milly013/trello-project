@@ -35,6 +35,7 @@ func main() {
 	notificationHandler := handler.NewNotificationHandler(notificationService)
 
 	router := gin.Default()
+	router.Use(CORSMiddleware())
 
 	// Definisanje ruta
 	router.POST("/notifications", notificationHandler.CreateNotification)
@@ -83,4 +84,21 @@ func connectToCassandra() (*gocql.Session, error) {
 	}
 
 	return nil, err
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "https://localhost:4200")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Header("Access-Control-Allow-Credentials", "true")
+
+		// Ako je preflight (OPTIONS) zahtev
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+			return
+		}
+
+		c.Next()
+	}
 }

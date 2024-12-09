@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/handlers"
 	"github.com/joho/godotenv"
 	"github.com/milly013/trello-project/back/task-service/handler"
 	"github.com/milly013/trello-project/back/task-service/repository"
@@ -43,8 +42,9 @@ func main() {
 	taskHandler := handler.NewTaskHandler(taskService)
 
 	router := gin.Default()
-	// API rute za zadatke
+	router.Use(CORSMiddleware())
 
+	// API rute za zadatke
 	router.POST("/tasks", taskHandler.CreateTask)
 	router.GET("/tasks", taskHandler.GetTasks)
 	router.PUT("/tasks/:id", taskHandler.UpdateTask)
@@ -58,11 +58,11 @@ func main() {
 	router.GET("/tasks/project/:projectID/status", taskHandler.HasIncompleteTasksByProject)
 
 	// Konfiguracija CORS-a
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{os.Getenv("CORS_ALLOWED_ORIGINS")}),
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-	)
+	// corsHandler := handlers.CORS(
+	// 	handlers.AllowedOrigins([]string{os.Getenv("CORS_ALLOWED_ORIGINS")}),
+	// 	handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+	// 	handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+	// )
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -70,7 +70,7 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Handler: corsHandler(router),
+		Handler: router,
 		Addr:    ":" + port,
 	}
 
@@ -106,4 +106,20 @@ func connectToMongoDB() (*mongo.Client, error) {
 
 	fmt.Printf("Connected to MongoDB database %s!\n", dbName)
 	return client, nil
+}
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "https://localhost:4200")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Header("Access-Control-Allow-Credentials", "true")
+
+		// Ako je preflight (OPTIONS) zahtev
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+			return
+		}
+
+		c.Next()
+	}
 }
