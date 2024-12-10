@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/milly013/trello-project/back/task-service/model"
 	"go.mongodb.org/mongo-driver/bson"
@@ -21,6 +22,26 @@ func NewTaskRepository(collection *mongo.Collection) *TaskRepository {
 func (r *TaskRepository) CreateTask(ctx context.Context, task *model.Task) error {
 	_, err := r.collection.InsertOne(ctx, task)
 	return err
+}
+func (r *TaskRepository) DeleteTask(ctx context.Context, taskId string) error {
+	// Pretvaranje taskId u ObjectID
+	objID, err := primitive.ObjectIDFromHex(taskId)
+	if err != nil {
+		return fmt.Errorf("invalid task ID: %w", err)
+	}
+
+	// Brisanje zadatka iz kolekcije
+	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": objID})
+	if err != nil {
+		return fmt.Errorf("failed to delete task: %w", err)
+	}
+
+	// Provera da li je zadatak zaista obrisan
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("task with ID %s not found", taskId)
+	}
+
+	return nil
 }
 
 func (r *TaskRepository) GetAllTasks(ctx context.Context) ([]model.Task, error) {

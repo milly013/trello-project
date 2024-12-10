@@ -501,7 +501,7 @@ func (h *UserHandler) RequestMagicLinkHandler(c *gin.Context) {
 	}
 
 	// Kreiraj magic link
-	magicLink := fmt.Sprintf("http://localhost:4200/magic-login?token=%s", tokenString)
+	magicLink := fmt.Sprintf("https://localhost:4200/magic-login?token=%s", tokenString)
 
 	// Pošalji magic link putem email-a
 	err = sendVerificationEmail(user.Email, magicLink)

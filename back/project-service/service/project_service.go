@@ -306,6 +306,29 @@ func (s *ProjectService) RemoveMemberFromProject(ctx context.Context, projectId 
 
 	return fmt.Errorf("member not found in project")
 }
+func (s *ProjectService) DeleteProject(ctx context.Context, projectId string) error {
+	// Proverite da li projekt postoji
+	project, err := s.repo.GetProjectById(ctx, projectId)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve project: %w", err)
+	}
+	if project == nil {
+		return fmt.Errorf("project not found")
+	}
+
+	// Proverite da li projekt ima povezane taskove
+	// if len(project.TaskIDs) > 0 {
+	// 	return fmt.Errorf("cannot delete project with associated tasks")
+	// }
+
+	// Izvršite brisanje projekta
+	err = s.repo.DeleteProject(ctx, projectId)
+	if err != nil {
+		return fmt.Errorf("failed to delete project: %w", err)
+	}
+
+	return nil
+}
 
 //===============Validacije=====================
 

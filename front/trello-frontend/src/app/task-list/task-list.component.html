@@ -21,7 +21,7 @@
         <td>
           <!-- Dugme koje vodi na stranicu za listu korisnika -->
           <button class="btn btn-primary" [routerLink]="['/task-users', task.id]">Show members</button>
-          <button class="btn btn-secondary" [routerLink]="['/task-status', task.id]">Change status</button>
+          <button class="btn btn-secondary" *ngIf="isUserManager()" [routerLink]="['/task-status', task.id]">Change status</button>
         </td>
       </tr>
     </tbody>

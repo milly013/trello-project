@@ -71,6 +71,9 @@ export class AddTaskComponent implements OnInit {
           console.log('Add task observable completed');
         }
       });
+    }else{
+      this.taskForm.markAllAsTouched();
+      
     }
   }
 }

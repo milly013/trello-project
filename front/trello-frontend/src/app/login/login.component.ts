@@ -29,7 +29,7 @@ export class LoginComponent {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      recaptcha: [null, Validators.required] // Add reCAPTCHA form control
+      recaptcha: [null, Validators.required] 
     });
   }
 
@@ -81,7 +81,11 @@ export class LoginComponent {
 
 
   resolved(captchaResponse: string | null): void {
-    this.loginForm.patchValue({ recaptcha: captchaResponse });
+    if (captchaResponse) {
+      this.loginForm.get('recaptcha')?.setValue(captchaResponse);
+    } else {
+      this.loginForm.get('recaptcha')?.setErrors({ required: true });
+    }
   }
   
 }

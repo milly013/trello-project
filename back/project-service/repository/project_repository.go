@@ -3,6 +3,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/milly013/trello-project/back/project-service/model"
@@ -155,4 +156,21 @@ func (repo *ProjectRepository) GetUserIDsByProject(ctx context.Context, projectI
 	}
 
 	return project.MemberIDs, nil
+}
+func (repo *ProjectRepository) DeleteProject(ctx context.Context, projectId string) error {
+	objID, err := primitive.ObjectIDFromHex(projectId)
+	if err != nil {
+		return err
+	}
+
+	result, err := repo.collection.DeleteOne(ctx, bson.M{"_id": objID})
+	if err != nil {
+		return err
+	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("project with ID %s not found", projectId)
+	}
+
+	return nil
 }

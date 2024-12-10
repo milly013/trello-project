@@ -15,7 +15,7 @@ export class MagicLoginComponent implements OnInit {
   token: string = '';
   errorMessage: string = '';
 
-  private apiUrl = 'http://localhost:8000/api/user/users'; // URL backend API-ja
+  private apiUrl = 'https://localhost/api/user/users'; // URL backend API-ja
 
   constructor(
     private route: ActivatedRoute,

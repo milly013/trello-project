@@ -59,6 +59,27 @@ func (s *TaskService) AddTask(ctx context.Context, task *model.Task) error {
 
 	return nil
 }
+func (s *TaskService) DeleteTask(ctx context.Context, taskId string) error {
+	// Proverava da li zadatak ima zavisnosti
+	dependencies, err := s.taskRepo.GetTaskDependencies(ctx, taskId)
+	if err != nil {
+		return fmt.Errorf("failed to check task dependencies: %w", err)
+	}
+
+	// Ako zadatak ima zavisnosti, ne dozvoljavamo brisanje
+	if len(dependencies) > 0 {
+		return fmt.Errorf("cannot delete task with existing dependencies")
+	}
+
+	// Brisanje zadatka iz repozitorijuma
+	err = s.taskRepo.DeleteTask(ctx, taskId)
+	if err != nil {
+		return fmt.Errorf("failed to delete task: %w", err)
+	}
+
+	return nil
+}
+
 func (s *TaskService) addTaskToProject(ctx context.Context, projectID, taskID primitive.ObjectID) error {
 	url := fmt.Sprintf("http://project-service:8081/projects/%s/tasks", projectID.Hex())
 

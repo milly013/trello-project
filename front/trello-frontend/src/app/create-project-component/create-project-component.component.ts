@@ -4,13 +4,14 @@ import { ProjectService, Project } from '../service/project.service';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService } from '../service/auth.service';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-create-project',
   standalone: true,
   templateUrl: './create-project-component.component.html',
   styleUrls: ['./create-project-component.component.css'],
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule,CommonModule],
   providers: [ProjectService] 
 })
 export class CreateProjectComponent implements OnInit {
@@ -61,6 +62,9 @@ export class CreateProjectComponent implements OnInit {
           console.log('Add project observable completed');
         }
       });
+    }else {
+      // Obeleži sva polja kao "touched" kako bi se prikazale greške
+      this.projectForm.markAllAsTouched();
     }
   }
   

@@ -56,6 +56,7 @@ func main() {
 	router.GET("/tasks/members/:taskId/users", taskHandler.GetUsersByTaskId)
 	router.GET("/tasks/status/:taskID", taskHandler.GetTaskStatus)
 	router.GET("/tasks/project/:projectID/status", taskHandler.HasIncompleteTasksByProject)
+	router.DELETE("/tasks/:taskId", taskHandler.DeleteTaskHandler)
 
 	// Konfiguracija CORS-a
 	// corsHandler := handlers.CORS(

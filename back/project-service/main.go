@@ -56,6 +56,7 @@ func main() {
 	router.GET("/projects/member/:memberId", projectHandler.GetProjectsByMember)
 	router.GET("/users/:projectId", projectHandler.GetUsersByProjectId)
 	router.GET("/projects/status/:projectID", projectHandler.HasIncompleteTasks)
+	router.DELETE("/project/:projectId", projectHandler.DeleteProject)
 
 	// Konfiguracija CORS-a
 	// corsHandler := handlers.CORS(
