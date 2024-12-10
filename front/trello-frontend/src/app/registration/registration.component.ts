@@ -46,7 +46,7 @@ export class RegistrationComponent {
       recaptchaToken: formData.recaptcha
     };
 
-    this.http.post('http://localhost:8000/api/user/users', sanitizedUser)
+    this.http.post('https://localhost/api/user/users', sanitizedUser)
       .subscribe({
         next: (response) => {
           console.log('Korisnik je uspešno registrovan', response);

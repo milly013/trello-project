@@ -66,7 +66,7 @@ func (s *ProjectService) GetTaskIDsByProject(ctx context.Context, projectId stri
 // Method to check if there are incomplete tasks in a project
 func (s *ProjectService) HasIncompleteTasks(ctx context.Context, projectID string) (bool, error) {
 	// Call task-service through API Gateway to get task statuses
-	url := fmt.Sprintf("http://api-gateway:8000/api/task/tasks/project/%s/status", projectID)
+	url := fmt.Sprintf("http://task-service:8082/tasks/project/%s/status", projectID)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -114,7 +114,7 @@ func (s *ProjectService) HasIncompleteTasks(ctx context.Context, projectID strin
 }
 
 func (s *ProjectService) GetUsersByProjectId(ctx context.Context, projectId string) ([]userModel.User, error) {
-	url := "http://api-gateway:8000/api/user/users/getByIds"
+	url := "http://user-service:8080/users/getByIds"
 
 	// Dobavi listu ID-eva korisnika iz prosleđenog projekta
 	userIds, err := s.repo.GetUserIDsByProject(ctx, projectId)
@@ -176,7 +176,7 @@ func convertObjectIDsToHex(ids []primitive.ObjectID) []string {
 }
 
 func (s *ProjectService) UserExists(ctx context.Context, memberId primitive.ObjectID) (bool, error) {
-	url := fmt.Sprintf("http://api-gateway:8000/api/user/users/%s", memberId.Hex())
+	url := fmt.Sprintf("http://user-service:8080/users/%s", memberId.Hex())
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Get(url)
