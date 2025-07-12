@@ -30,6 +30,11 @@ func main() {
 	}
 	defer session.Close()
 
+	// Poziv funkcije za kreiranje tabele
+	if err := createTableIfNotExists(session); err != nil {
+		log.Fatal("Error creating Cassandra table:", err)
+	}
+
 	notificationRepo := repository.NewNotificationRepository(session)
 	notificationService := service.NewNotificationService(notificationRepo)
 	notificationHandler := handler.NewNotificationHandler(notificationService)
@@ -84,6 +89,21 @@ func connectToCassandra() (*gocql.Session, error) {
 	}
 
 	return nil, err
+}
+
+func createTableIfNotExists(session *gocql.Session) error {
+	query := `
+	CREATE TABLE IF NOT EXISTS notifications (
+		id UUID,
+		user_id TEXT,
+		type TEXT,
+		message TEXT,
+		created_at TIMESTAMP,
+		is_read BOOLEAN,
+		PRIMARY KEY ((user_id), created_at)
+	) WITH CLUSTERING ORDER BY (created_at DESC);
+	`
+	return session.Query(query).Exec()
 }
 
 func CORSMiddleware() gin.HandlerFunc {
