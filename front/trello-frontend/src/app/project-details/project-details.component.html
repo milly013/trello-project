@@ -1,10 +1,10 @@
 <div class="container mt-4" *ngIf="project">
-    <h2>Detalji Projekta: {{ project.name }}</h2>
-    <p><strong>Datum završetka:</strong> {{ project.endDate | date }}</p>
-    <p><strong>Minimalno članova:</strong> {{ project.minMembers }}</p>
-    <p><strong>Maksimalno članova:</strong> {{ project.maxMembers }}</p>
-    <p><strong>Aktivan:</strong> {{ project.isActive ? 'Da' : 'Ne' }}</p>
-    <p><strong>Datum kreiranja:</strong> {{ project.createdAt | date }}</p>
+    <h2>Project details: {{ project.name }}</h2>
+    <p><strong>End date:</strong> {{ project.endDate | date }}</p>
+    <p><strong>Min members:</strong> {{ project.minMembers }}</p>
+    <p><strong>Max members:</strong> {{ project.maxMembers }}</p>
+    <p><strong>Active:</strong> {{ project.isActive ? 'Da' : 'Ne' }}</p>
+    <p><strong>Created at:</strong> {{ project.createdAt | date }}</p>
     <button class="btn btn-info mt-3" [routerLink]="['/task-list', project.id]">Tasks</button>
     <button class="btn btn-primary mt-3" [routerLink]="['/project-users', project.id]">Members</button>
   </div>

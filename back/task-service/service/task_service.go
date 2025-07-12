@@ -59,8 +59,29 @@ func (s *TaskService) AddTask(ctx context.Context, task *model.Task) error {
 
 	return nil
 }
+func (s *TaskService) DeleteTask(ctx context.Context, taskId string) error {
+	// Proverava da li zadatak ima zavisnosti
+	dependencies, err := s.taskRepo.GetTaskDependencies(ctx, taskId)
+	if err != nil {
+		return fmt.Errorf("failed to check task dependencies: %w", err)
+	}
+
+	// Ako zadatak ima zavisnosti, ne dozvoljavamo brisanje
+	if len(dependencies) > 0 {
+		return fmt.Errorf("cannot delete task with existing dependencies")
+	}
+
+	// Brisanje zadatka iz repozitorijuma
+	err = s.taskRepo.DeleteTask(ctx, taskId)
+	if err != nil {
+		return fmt.Errorf("failed to delete task: %w", err)
+	}
+
+	return nil
+}
+
 func (s *TaskService) addTaskToProject(ctx context.Context, projectID, taskID primitive.ObjectID) error {
-	url := fmt.Sprintf("http://api-gateway:8000/api/project/projects/%s/tasks", projectID.Hex())
+	url := fmt.Sprintf("http://project-service:8081/projects/%s/tasks", projectID.Hex())
 
 	requestBody, err := json.Marshal(map[string]string{
 		"taskId": taskID.Hex(),
@@ -109,7 +130,7 @@ func (s *TaskService) UpdateTask(ctx context.Context, task *model.Task) error {
 	return s.taskRepo.UpdateTask(ctx, task)
 }
 func (s *TaskService) GetTaskIDsByProject(ctx context.Context, projectId string) ([]primitive.ObjectID, error) {
-	url := fmt.Sprintf("http://api-gateway:8000/api/project/projects/%s/tasks", projectId)
+	url := fmt.Sprintf("http://project-service:8081/projects/%s/tasks", projectId)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -248,7 +269,7 @@ func (s *TaskService) getUsersByIDs(ctx context.Context, userIDs []primitive.Obj
 	}
 
 	// Kreiramo URL za pozivanje `user-service`
-	url := fmt.Sprintf("http://api-gateway:8000/api/user/users/getByIds")
+	url := fmt.Sprintf("http://user-service:8080/users/getByIds")
 	requestBody, err := json.Marshal(map[string][]string{
 		"userIds": userIDStrings,
 	})

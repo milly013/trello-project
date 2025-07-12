@@ -3,19 +3,21 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ProjectService, Project } from '../service/project.service';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService } from '../service/auth.service';
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-create-project',
   standalone: true,
   templateUrl: './create-project-component.component.html',
   styleUrls: ['./create-project-component.component.css'],
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule,CommonModule],
   providers: [ProjectService] 
 })
 export class CreateProjectComponent implements OnInit {
   projectForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private projectService: ProjectService, private authService: AuthService) {
+  constructor(private fb: FormBuilder, private projectService: ProjectService, private authService: AuthService, private router: Router) {
     this.projectForm = this.fb.group({
       name: ['', Validators.required],
       expected_end_date: ['', Validators.required],
@@ -41,6 +43,8 @@ export class CreateProjectComponent implements OnInit {
         endDate: new Date(this.projectForm.value.expected_end_date).toISOString(),
         minMembers: this.projectForm.value.min_members,
         maxMembers: this.projectForm.value.max_members,
+        memberIds: [],
+        taskIds: [],
         managerId: managerId
       };
       
@@ -49,6 +53,7 @@ export class CreateProjectComponent implements OnInit {
         next: (response) => {
           console.log('Project added successfully', response);
           this.projectForm.reset();
+          this.router.navigate(['project-list'])
         },
         error: (error) => {
           console.error('Error adding project', error);
@@ -57,6 +62,9 @@ export class CreateProjectComponent implements OnInit {
           console.log('Add project observable completed');
         }
       });
+    }else {
+      // Obeleži sva polja kao "touched" kako bi se prikazale greške
+      this.projectForm.markAllAsTouched();
     }
   }
   

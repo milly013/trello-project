@@ -19,7 +19,7 @@ export interface Project {
   providedIn: 'root'
 })
 export class ProjectService {
-  private apiUrl = 'http://localhost:8000/api/project'; 
+  private apiUrl = 'https://localhost/api/project';
   
   constructor(private http: HttpClient) { }
 

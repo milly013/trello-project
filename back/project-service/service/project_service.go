@@ -67,7 +67,7 @@ func (s *ProjectService) GetTaskIDsByProject(ctx context.Context, projectId stri
 // Method to check if there are incomplete tasks in a project
 func (s *ProjectService) HasIncompleteTasks(ctx context.Context, projectID string) (bool, error) {
 	// Call task-service through API Gateway to get task statuses
-	url := fmt.Sprintf("http://api-gateway:8000/api/task/tasks/project/%s/status", projectID)
+	url := fmt.Sprintf("http://task-service:8082/tasks/project/%s/status", projectID)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -101,7 +101,7 @@ func (s *ProjectService) HasIncompleteTasks(ctx context.Context, projectID strin
 		return false, fmt.Errorf("project not found")
 	}
 
-	if response.HasIncompleteTasks {
+	if response.HasIncompleteTasks || len(project.TaskIDs) == 0 {
 		project.IsActive = true
 	} else {
 		project.IsActive = false
@@ -115,7 +115,7 @@ func (s *ProjectService) HasIncompleteTasks(ctx context.Context, projectID strin
 }
 
 func (s *ProjectService) GetUsersByProjectId(ctx context.Context, projectId string) ([]userModel.User, error) {
-	url := "http://api-gateway:8000/api/user/users/getByIds"
+	url := "http://user-service:8080/users/getByIds"
 
 	// Dobavi listu ID-eva korisnika iz prosleđenog projekta
 	userIds, err := s.repo.GetUserIDsByProject(ctx, projectId)
@@ -177,7 +177,7 @@ func convertObjectIDsToHex(ids []primitive.ObjectID) []string {
 }
 
 func (s *ProjectService) UserExists(ctx context.Context, memberId primitive.ObjectID) (bool, error) {
-	url := fmt.Sprintf("http://api-gateway:8000/api/user/users/%s", memberId.Hex())
+	url := fmt.Sprintf("http://user-service:8080/users/%s", memberId.Hex())
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Get(url)
@@ -196,38 +196,40 @@ func (s *ProjectService) UserExists(ctx context.Context, memberId primitive.Obje
 }
 
 func (s *ProjectService) AddMemberToProject(ctx context.Context, projectId string, memberId primitive.ObjectID) error {
-	// Check if the project is active
-	hasIncompleteTasks, err := s.HasIncompleteTasks(ctx, projectId)
-	if err != nil {
-		return fmt.Errorf("failed to check if project has incomplete tasks: %w", err)
-	}
-	if !hasIncompleteTasks {
-		return fmt.Errorf("cannot add member to an inactive project")
-	}
-
-	exists, err := s.UserExists(ctx, memberId)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("user does not exist")
-	}
-
 	project, err := s.repo.GetProjectById(ctx, projectId)
 	if err != nil {
 		return err
 	}
 
-	if len(project.MemberIDs) >= project.MaxMembers {
-		return fmt.Errorf("maximum number of members reached")
-	}
+	if len(project.TaskIDs) != 0 {
+		// Check if the project is active
+		hasIncompleteTasks, err := s.HasIncompleteTasks(ctx, projectId)
+		if err != nil {
+			return fmt.Errorf("failed to check if project has incomplete tasks: %w", err)
+		}
+		if !hasIncompleteTasks {
+			return fmt.Errorf("cannot add member to an inactive project")
+		}
 
-	for _, id := range project.MemberIDs {
-		if id == memberId {
-			return fmt.Errorf("member already exists in project")
+	} else {
+		exists, err := s.UserExists(ctx, memberId)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return fmt.Errorf("user does not exist")
+		}
+
+		if len(project.MemberIDs) >= project.MaxMembers {
+			return fmt.Errorf("maximum number of members reached")
+		}
+
+		for _, id := range project.MemberIDs {
+			if id == memberId {
+				return fmt.Errorf("member already exists in project")
+			}
 		}
 	}
-
 	project.MemberIDs = append(project.MemberIDs, memberId)
 	return s.repo.UpdateProject(ctx, project)
 }
@@ -332,6 +334,29 @@ func (s *ProjectService) RemoveMemberFromProject(ctx context.Context, projectId 
 	}
 
 	return fmt.Errorf("member not found in project")
+}
+func (s *ProjectService) DeleteProject(ctx context.Context, projectId string) error {
+	// Proverite da li projekt postoji
+	project, err := s.repo.GetProjectById(ctx, projectId)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve project: %w", err)
+	}
+	if project == nil {
+		return fmt.Errorf("project not found")
+	}
+
+	// Proverite da li projekt ima povezane taskove
+	// if len(project.TaskIDs) > 0 {
+	// 	return fmt.Errorf("cannot delete project with associated tasks")
+	// }
+
+	// Izvršite brisanje projekta
+	err = s.repo.DeleteProject(ctx, projectId)
+	if err != nil {
+		return fmt.Errorf("failed to delete project: %w", err)
+	}
+
+	return nil
 }
 
 func contains(ids []primitive.ObjectID, id primitive.ObjectID) bool {

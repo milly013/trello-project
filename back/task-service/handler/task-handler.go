@@ -33,6 +33,17 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, task)
 }
+func (h *TaskHandler) DeleteTaskHandler(c *gin.Context) {
+	taskId := c.Param("taskId")
+
+	err := h.service.DeleteTask(c.Request.Context(), taskId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
+}
 
 // Handler za dobijanje svih zadataka
 func (h *TaskHandler) GetTasks(c *gin.Context) {

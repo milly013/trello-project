@@ -8,18 +8,30 @@
                 <div class="form-group">
                     <label for="name">Project Name</label>
                     <input type="text" class="form-control" id="name" formControlName="name" required>
+                    <div *ngIf="projectForm.get('name')?.touched && projectForm.get('name')?.invalid" class="error">
+                        Project Name is required.
+                      </div>
                 </div>
                 <div class="form-group">
                     <label for="expected_end_date">Expected End Date</label>
                     <input type="date" class="form-control" id="expected_end_date" formControlName="expected_end_date" required>
+                    <div *ngIf="projectForm.get('expected_end_date')?.touched && projectForm.get('expected_end_date')?.invalid" class="error">
+                        Expected End Date is required.
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="min_members">Minimum Members</label>
                     <input type="number" class="form-control" id="min_members" formControlName="min_members" required min="1">
+                    <div *ngIf="projectForm.get('min_members')?.touched && projectForm.get('min_members')?.invalid" class="error">
+                        Minimum Members is required and must be at least 1.
+                      </div>
                 </div>
                 <div class="form-group">
                     <label for="max_members">Maximum Members</label>
                     <input type="number" class="form-control" id="max_members" formControlName="max_members" required min="1">
+                    <div *ngIf="projectForm.get('max_members')?.touched && projectForm.get('max_members')?.invalid" class="error">
+                        Maximum Members is required and must be at least 1.
+                      </div>
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 10px !important;">Add Project</button>
             </form>

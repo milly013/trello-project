@@ -67,6 +67,17 @@ func (h *ProjectHandler) GetProjectByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, project)
 }
+func (h *ProjectHandler) DeleteProject(c *gin.Context) {
+	projectId := c.Param("projectId")
+
+	err := h.service.DeleteProject(c.Request.Context(), projectId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Project deleted successfully"})
+}
 func (h *ProjectHandler) GetProjectsByManager(c *gin.Context) {
 	managerId := c.Param("managerId")
 

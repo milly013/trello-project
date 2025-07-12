@@ -4,9 +4,6 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {jwtDecode} from 'jwt-decode';
 
-
-
-
 interface LoginResponse {
   token: string;
   userId: string;
@@ -17,15 +14,15 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8000/api/user/users'; 
+  private apiUrl = 'https://localhost/api/user/users'; 
   private tokenKey = 'authToken';
 
   constructor(private http: HttpClient) {}
 
-  login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password });
+  login(email: string, password: string, recaptchaToken: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password, recaptchaToken });
   }
-
+  
   // Funkcija za proveru da li je korisnik prijavljen
   isAuthenticated(): boolean {
     return !!localStorage.getItem('authToken');

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/handlers"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -43,6 +42,7 @@ func main() {
 	projectHandler := handler.NewProjectHandler(projectService)
 
 	router := gin.Default()
+	router.Use(CORSMiddleware())
 
 	// Definisanje ruta
 	router.POST("/projects", projectHandler.CreateProject)
@@ -56,13 +56,14 @@ func main() {
 	router.GET("/projects/member/:memberId", projectHandler.GetProjectsByMember)
 	router.GET("/users/:projectId", projectHandler.GetUsersByProjectId)
 	router.GET("/projects/status/:projectID", projectHandler.HasIncompleteTasks)
+	router.DELETE("/project/:projectId", projectHandler.DeleteProject)
 
 	// Konfiguracija CORS-a
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{os.Getenv("CORS_ALLOWED_ORIGINS")}),
-		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-	)
+	// corsHandler := handlers.CORS(
+	// 	handlers.AllowedOrigins([]string{os.Getenv("CORS_ALLOWED_ORIGINS")}),
+	// 	handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE"}),
+	// 	handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+	// )
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -70,7 +71,7 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Handler: corsHandler(router),
+		Handler: router,
 		Addr:    ":" + port,
 	}
 
@@ -107,4 +108,22 @@ func connectToMongoDB() (*mongo.Client, error) {
 
 	fmt.Printf("Connected to MongoDB database %s!\n", dbName)
 	return client, nil
+}
+
+// CORS Middleware funkcija
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "https://localhost:4200")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Header("Access-Control-Allow-Credentials", "true")
+
+		// Ako je preflight (OPTIONS) zahtev
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+			return
+		}
+
+		c.Next()
+	}
 }

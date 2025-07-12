@@ -1,4 +1,6 @@
-
+<div class="col-xs-6 " style="margin-top: 110px !important; text-align: -webkit-center;">
+  <div class="row">
+  <div><h1>Login</h1></div>
 <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
   <div class="form-group">
     <label for="email">Email</label>
@@ -7,6 +9,7 @@
       id="email"
       class="form-control"
       formControlName="email"
+      placeholder="Enter email"
     />
     <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-danger">
       Valid email is required.
@@ -20,10 +23,19 @@
       id="password"
       class="form-control"
       formControlName="password"
+      placeholder="Enter password"
     />
     <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-danger">
       Password must be at least 6 characters long.
     </div>
+  </div>
+  
+  <div class="form-group">
+    <re-captcha
+      
+      [siteKey]="siteKey"
+      (resolved)="resolved($event)"
+    ></re-captcha>
   </div>
 
   <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
@@ -40,3 +52,5 @@
     <a [routerLink]="'/request-magic-link'" class="text-primary">Login with magic link</a>
   </div>
 </form>
+</div>
+</div>

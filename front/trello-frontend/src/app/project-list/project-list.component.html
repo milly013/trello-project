@@ -1,15 +1,15 @@
 <div class="container mt-4">
-    <h2>Lista Projekata</h2>
+    <h2>Project list:</h2>
     <table class="table table-striped">
       <thead>
         <tr>
-          <th>Naziv</th>
-          <th>Datum završetka</th>
-          <th>Minimalno članova</th>
-          <th>Maksimalno članova</th>
-          <th>Aktivan</th>
-          <th>Datum kreiranja</th>
-          <th>Akcije</th>
+          <th>Project name</th>
+          <th>End date</th>
+          <th>Min members</th>
+          <th>Max members</th>
+          <th>Active</th>
+          <th>Created at</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -21,7 +21,7 @@
           <td>{{ project.isActive ? 'Da' : 'Ne' }}</td>
           <td>{{ project.createdAt | date }}</td>
           <td>
-            <button class="btn btn-info" [routerLink]="['/project-details', project.id]">Prikaži detalje</button>
+            <button class="btn btn-info" [routerLink]="['/project-details', project.id]">Show details</button>
           </td>
         </tr>
       </tbody>

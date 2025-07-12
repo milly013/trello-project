@@ -54,6 +54,7 @@ export class TaskUsersComponent implements OnInit {
     if (this.taskId) {
       this.taskService.getUsersByTaskId(this.taskId).subscribe(
         (users) => {
+          console.log(users)
           this.users = users;
         },
         (error) => {

@@ -8,22 +8,30 @@
         <div class="form-group">
           <label for="title">Task Title</label>
           <input type="text" class="form-control" id="title" formControlName="title" required>
+          <div *ngIf="taskForm.get('title')?.touched && taskForm.get('title')?.invalid" class="error">
+            Title is required.
+          </div>
         </div>
         <div class="form-group">
           <label for="description">Description</label>
           <textarea class="form-control" id="description" formControlName="description" rows="3" required></textarea>
+          <div *ngIf="taskForm.get('description')?.touched && taskForm.get('description')?.invalid" class="error">
+            Description is required.
+          </div>
         </div>
         <div class="form-group">
           <label for="startDate">Start Date</label>
           <input type="date" class="form-control" id="startDate" formControlName="startDate" required>
+          <div *ngIf="taskForm.get('startDate')?.touched && taskForm.get('startDate')?.invalid" class="error">
+            Start date is required.
+          </div>
         </div>
         <div class="form-group">
           <label for="endDate">End Date</label>
           <input type="date" class="form-control" id="endDate" formControlName="endDate" required>
-        </div>
-        <div class="form-group">
-          <label for="assignedTo">Assigned To (User ID)</label>
-          <input type="text" class="form-control" id="assignedTo" formControlName="assignedTo">
+          <div *ngIf="taskForm.get('endDate')?.touched && taskForm.get('endDate')?.invalid" class="error">
+            End date is required.
+          </div>
         </div>
         <div class="form-group">
           <label for="status">Status</label>
@@ -32,6 +40,9 @@
             <option value="InProgress">In Progress</option>
             <option value="Completed">Completed</option>
           </select>
+          <div *ngIf="taskForm.get('status')?.touched && taskForm.get('status')?.invalid" class="error">
+            Status is required.
+          </div>
         </div>
         <button type="submit" class="btn btn-primary" style="margin-top: 10px !important;">Add Task</button>
       </form>

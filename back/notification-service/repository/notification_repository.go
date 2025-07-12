@@ -52,16 +52,30 @@ func (r *NotificationRepository) CreateNotification(notification *model.Notifica
 	return nil
 }
 
-// Metoda za dohvatanje obaveštenja po korisničkom ID-ju
 func (r *NotificationRepository) GetNotificationsByUserID(userID string) ([]model.Notification, error) {
-	query := `SELECT id, user_id, type, message, created_at, is_read FROM notifications WHERE user_id = ? ALLOW FILTERING`
+	query := `SELECT id, user_id, type, message, created_at, is_read FROM notifications WHERE user_id = ?`
 	iter := r.session.Query(query, userID).Iter()
 
 	var notifications []model.Notification
-	var notification model.Notification
 
-	for iter.Scan(&notification.ID, &notification.UserID, &notification.Type, &notification.Message, &notification.CreatedAt, &notification.IsRead) {
-		notifications = append(notifications, notification)
+	var (
+		id        gocql.UUID
+		uID       string
+		ntype     string
+		message   string
+		createdAt time.Time
+		isRead    bool
+	)
+
+	for iter.Scan(&id, &uID, &ntype, &message, &createdAt, &isRead) {
+		notifications = append(notifications, model.Notification{
+			ID:        id,
+			UserID:    uID,
+			Type:      ntype,
+			Message:   message,
+			CreatedAt: createdAt,
+			IsRead:    isRead,
+		})
 	}
 
 	if err := iter.Close(); err != nil {
