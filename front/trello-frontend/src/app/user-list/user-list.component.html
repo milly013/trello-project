@@ -7,7 +7,7 @@
           <th>Username</th>
           <th>Email</th>
           <th>Status</th>
-          <th>Actions</th>
+          <th *ngIf="isManager">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -16,7 +16,7 @@
           <td>{{ user.username }}</td>
           <td>{{ user.email }}</td>
           <td>{{ user.isActive ? 'Aktivan' : 'Neaktivan' }}</td>
-          <td><Button class="btn btn-danger" (click)="deleteUser(user.id)">Delete</Button></td>
+          <td *ngIf="isManager"><Button class="btn btn-danger" *ngIf="user.id !== currentUserId" (click)="deleteUser(user.id)">Delete</Button></td>
         </tr>
       </tbody>
     </table>

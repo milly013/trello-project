@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gocql/gocql"
 	"github.com/gorilla/handlers"
-	"github.com/joho/godotenv"
 	"github.com/milly013/trello-project/back/notification-service/handler"
 	"github.com/milly013/trello-project/back/notification-service/repository"
 	"github.com/milly013/trello-project/back/notification-service/service"
@@ -18,10 +17,6 @@ import (
 var session *gocql.Session
 
 func main() {
-	// Učitajte .env fajl
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
 
 	var err error
 	session, err = connectToCassandra()

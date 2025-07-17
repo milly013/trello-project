@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -21,10 +20,6 @@ import (
 var userCollection *mongo.Collection
 
 func main() {
-	// Učitavanje .env fajla
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
 
 	// Učitavanje crne liste lozinki
 	service.LoadBlacklistedPasswords("blacklist_passwords.txt") // Dodaj ovo da učitaš crnu listu lozinki

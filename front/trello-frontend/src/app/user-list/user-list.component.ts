@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { User, UserService } from '../service/user.service';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../service/auth.service';
 
 @Component({
   selector: 'app-user-list',
@@ -10,12 +11,17 @@ import { CommonModule } from '@angular/common';
   imports:[CommonModule]
 })
 export class UserListComponent implements OnInit {
+  isManager: boolean = false;
+  currentUserId: string | null = null;
+
   users: User[] = [];
 
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService, private authService: AuthService) {}
 
   ngOnInit(): void {
     this.loadUsers();
+    this.isManager = this.authService.isUserManager();
+    this.currentUserId = this.authService.getUserId();
   }
 
   loadUsers(): void {

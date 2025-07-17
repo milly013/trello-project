@@ -38,6 +38,9 @@ export class AppNavComponent {
     }
     return false
   }
-
+  isManager(): boolean {
+    const role = localStorage.getItem('userRole');
+    return role === 'manager';
+  }
 
 }

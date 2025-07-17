@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/milly013/trello-project/back/task-service/handler"
 	"github.com/milly013/trello-project/back/task-service/repository"
 	"github.com/milly013/trello-project/back/task-service/service"
@@ -21,10 +20,6 @@ import (
 var taskCollection *mongo.Collection
 
 func main() {
-	// Učitajte .env fajl
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
 
 	// Povezivanje na MongoDB
 	client, err := connectToMongoDB()
